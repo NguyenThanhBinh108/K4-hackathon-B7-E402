@@ -1,0 +1,4 @@
+# pip install -r requirements.txt --break-system-packages   (neu can, tuy moi truong)
+requests>=2.31
+trafilatura>=1.8   # trich xuat noi dung chinh tu HTML (bo boilerplate)
+pypdf>=4.0         # doc text tu PDF (vd link arxiv.org/pdf/...)

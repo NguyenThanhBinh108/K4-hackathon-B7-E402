@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiểm Chứng Nguồn — Pitch Deck</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* === CSS VARIABLES — Electric Studio preset === */
+:root{
+  --bg-dark:#0a0a0a;
+  --bg-white:#ffffff;
+  --accent-blue:#4361ee;
+  --accent-blue-glow:rgba(67,97,238,.35);
+  --accent-red:#f23f43;
+  --accent-green:#23a55a;
+  --text-dark:#0a0a0a;
+  --text-light:#ffffff;
+  --text-muted:#6b7280;
+  --font-display:'Manrope',sans-serif;
+  --font-body:'Manrope',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --ease-out-expo:cubic-bezier(.16,1,.3,1);
+  --stage-bg:#0a0a0a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-body);}
+
+/* === MANDATORY FIXED 16:9 STAGE (verbatim base) === */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;display:flex;gap:10px;align-items:center;font-family:var(--font-mono);}
+@media print{
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+  .deck-viewport{position:static;overflow:visible;background:#fff;}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+  .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+  .slide:last-child{break-after:auto;page-break-after:auto;}
+  .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}
+}
+
+/* === ENTRANCE ANIMATION === */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s var(--ease-out-expo),transform .6s var(--ease-out-expo);}
+.slide.visible .reveal{opacity:1;transform:translateY(0);}
+.reveal:nth-child(1){transition-delay:.1s}.reveal:nth-child(2){transition-delay:.2s}
+.reveal:nth-child(3){transition-delay:.3s}.reveal:nth-child(4){transition-delay:.4s}
+.reveal:nth-child(5){transition-delay:.5s}.reveal:nth-child(6){transition-delay:.6s}
+
+/* === SLIDE CHROME (top brand mark / footer) === */
+.brand-mark{position:absolute;top:56px;left:72px;font-family:var(--font-mono);font-size:20px;font-weight:500;letter-spacing:.04em;z-index:5;}
+.brand-mark.on-dark{color:rgba(255,255,255,.55);}
+.brand-mark.on-light{color:rgba(10,10,10,.4);}
+.page-num{position:absolute;bottom:48px;right:72px;font-family:var(--font-mono);font-size:18px;z-index:5;}
+.page-num.on-dark{color:rgba(255,255,255,.35);}
+.page-num.on-light{color:rgba(10,10,10,.3);}
+
+/* === SPLIT PANEL LAYOUT (Electric Studio signature) === */
+.split{display:flex;width:100%;height:100%;}
+.split .panel-white{background:var(--bg-white);color:var(--text-dark);flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 90px;position:relative;}
+.split .panel-dark{background:var(--bg-dark);color:var(--text-light);flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 90px;position:relative;}
+.accent-bar{position:absolute;top:0;bottom:0;width:8px;background:var(--accent-blue);}
+.accent-bar.left{left:0;}
+.accent-bar.right{right:0;}
+
+/* === TITLE SLIDE === */
+#s1 .split .panel-dark{align-items:flex-start;}
+#s1 h1{font-size:104px;font-weight:800;line-height:1.05;letter-spacing:-.02em;}
+#s1 .kicker{font-family:var(--font-mono);font-size:24px;color:var(--accent-blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px;}
+#s1 .subtitle{font-size:30px;color:rgba(255,255,255,.65);margin-top:28px;max-width:640px;line-height:1.5;}
+#s1 .meta{margin-top:56px;font-family:var(--font-mono);font-size:20px;color:rgba(255,255,255,.4);}
+#s1 .panel-white{align-items:center;justify-content:center;}
+#s1 .shield{width:320px;height:320px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--accent-blue-glow),transparent 70%);display:flex;align-items:center;justify-content:center;font-size:160px;}
+
+/* === CONTENT LAYOUTS === */
+.full-dark{width:100%;height:100%;background:var(--bg-dark);color:var(--text-light);padding:120px 100px;position:relative;}
+.full-white{width:100%;height:100%;background:var(--bg-white);color:var(--text-dark);padding:120px 100px;position:relative;}
+.slide-kicker{font-family:var(--font-mono);font-size:22px;color:var(--accent-blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
+.slide-title{font-size:64px;font-weight:800;letter-spacing:-.01em;margin-bottom:52px;line-height:1.15;}
+.on-dark .slide-title{color:#fff;}
+.on-white .slide-title{color:var(--text-dark);}
+
+/* Problem slide — big stat + supporting lines */
+#s2 .stat-row{display:flex;gap:80px;margin-top:20px;}
+#s2 .stat{flex:1;}
+#s2 .stat .num{font-size:96px;font-weight:800;color:var(--accent-blue);line-height:1;}
+#s2 .stat .label{font-size:26px;color:rgba(255,255,255,.6);margin-top:16px;line-height:1.4;}
+
+/* One-sentence solution slide */
+#s3 .sentence{font-size:46px;font-weight:700;line-height:1.5;max-width:1500px;}
+#s3 .sentence .hl{color:var(--accent-blue);}
+#s3 .flow{display:flex;gap:0;align-items:center;margin-top:70px;}
+#s3 .flow-step{background:#111;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:26px 32px;font-family:var(--font-mono);font-size:22px;flex:1;text-align:center;}
+#s3 .flow-arrow{font-size:34px;color:var(--accent-blue);padding:0 24px;}
+
+/* Architecture slide */
+#s4 .arch-row{display:flex;gap:24px;margin-top:10px;}
+#s4 .arch-box{flex:1;background:#f4f5f7;border-radius:14px;padding:34px 30px;border-left:6px solid var(--accent-blue);}
+#s4 .arch-box.risk{border-left-color:var(--accent-red);}
+#s4 .arch-box h3{font-size:26px;font-weight:800;margin-bottom:14px;}
+#s4 .arch-box p{font-size:19px;color:var(--text-muted);line-height:1.5;}
+#s4 .arch-arrow{align-self:center;font-size:34px;color:var(--accent-blue);}
+
+/* Case study slides (M14/M15, M02) */
+.case-slide{display:flex;height:100%;}
+.case-slide .case-left{width:44%;background:var(--bg-dark);color:#fff;padding:110px 70px;display:flex;flex-direction:column;justify-content:center;}
+.case-slide .case-right{width:56%;background:var(--bg-white);color:var(--text-dark);padding:110px 70px;display:flex;flex-direction:column;justify-content:center;}
+.case-tag{display:inline-block;font-family:var(--font-mono);font-size:18px;padding:8px 18px;border-radius:6px;margin-bottom:26px;width:fit-content;}
+.case-tag.danger{background:var(--accent-red);color:#fff;}
+.case-tag.ok{background:var(--accent-green);color:#fff;}
+.msg-quote{font-family:var(--font-mono);font-size:19px;line-height:1.6;background:rgba(255,255,255,.06);border-left:4px solid var(--accent-blue);padding:22px 26px;border-radius:6px;margin-bottom:26px;color:rgba(255,255,255,.85);}
+.verdict-box{background:#f4f5f7;border-radius:14px;padding:30px 34px;margin-top:8px;}
+.verdict-box .v-line{font-size:22px;margin-bottom:12px;display:flex;justify-content:space-between;}
+.verdict-box .v-line b{color:var(--text-dark);}
+.verdict-box .v-line span.val{color:var(--text-muted);font-family:var(--font-mono);font-size:19px;}
+.risk-reason{font-size:17px;color:#8a2323;background:#fdeaea;padding:10px 14px;border-radius:6px;margin-top:10px;}
+
+/* Results slide */
+#s7 .results-grid{display:flex;gap:36px;margin-top:20px;}
+#s7 .rcard{flex:1;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:40px 34px;text-align:center;}
+#s7 .rcard .big{font-size:80px;font-weight:800;color:var(--accent-blue);}
+#s7 .rcard.green .big{color:var(--accent-green);}
+#s7 .rcard .lbl{font-size:20px;color:rgba(255,255,255,.6);margin-top:14px;line-height:1.4;}
+
+/* Limitations slide */
+#s8 .limit-list{margin-top:10px;}
+#s8 .limit-item{display:flex;gap:24px;padding:22px 0;border-bottom:1px solid rgba(0,0,0,.08);align-items:flex-start;}
+#s8 .limit-item .tag{font-family:var(--font-mono);font-size:16px;background:var(--accent-blue);color:#fff;padding:6px 14px;border-radius:6px;flex-shrink:0;width:90px;text-align:center;}
+#s8 .limit-item p{font-size:22px;line-height:1.5;color:var(--text-dark);}
+
+/* Closing slide */
+#s9 .split .panel-dark{align-items:flex-start;justify-content:center;}
+#s9 h2{font-size:76px;font-weight:800;line-height:1.1;}
+#s9 .thanks-list{margin-top:44px;font-size:24px;color:rgba(255,255,255,.65);line-height:2;}
+#s9 .panel-white{align-items:center;justify-content:center;}
+#s9 .qr-fake{width:220px;height:220px;border:3px solid var(--accent-blue);border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:80px;color:var(--accent-blue);}
+
+.list{font-size:24px;line-height:1.9;margin-top:6px;}
+.list li{margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+  <!-- SLIDE 1 — TITLE -->
+  <section class="slide active" id="s1">
+    <div class="split">
+      <div class="panel-dark">
+        <div class="reveal kicker">HƯỚNG B — TRỢ LÝ HỌC VIÊN (DISCORD)</div>
+        <h1 class="reveal">Kiểm<br>Chứng<br>Nguồn</h1>
+        <p class="reveal subtitle">AI tự động kiểm chứng độ tin cậy của mỗi bài chia sẻ kiến thức trong kênh Discord khoá AI Thực Chiến — trước khi học viên lỡ tin và áp dụng sai.</p>
+        <div class="reveal meta">K4 Hackathon B7-E402 · Prototype</div>
+      </div>
+      <div class="panel-white">
+        <div class="reveal shield">🛡️</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 — PROBLEM -->
+  <section class="slide" id="s2">
+    <div class="full-dark on-dark">
+      <div class="brand-mark on-dark">KIỂM CHỨNG NGUỒN</div>
+      <div class="reveal slide-kicker">VẤN ĐỀ</div>
+      <div class="reveal slide-title">Kênh chia sẻ kiến thức không qua kiểm duyệt.</div>
+      <div class="stat-row">
+        <div class="reveal stat"><div class="num">0</div><div class="label">bước kiểm duyệt trước khi một bài chia sẻ lên kênh — ai cũng có thể đăng bất kỳ claim kỹ thuật nào</div></div>
+        <div class="reveal stat"><div class="num">?</div><div class="label">không ai biết claim nào chắc chắn đúng, claim nào chỉ là đồn/nhớ nhầm/quảng cáo trá hình</div></div>
+        <div class="reveal stat"><div class="num">④</div><div class="label">rủi ro cao nhất: học sai kiến thức AI ngay trong khoá học về AI — hoặc tệ hơn, mất tiền/lộ token vì tin theo mẹo rủi ro</div></div>
+      </div>
+      <div class="page-num on-dark">02</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — ONE SENTENCE SOLUTION -->
+  <section class="slide" id="s3">
+    <div class="full-white on-white">
+      <div class="brand-mark on-light">KIỂM CHỨNG NGUỒN</div>
+      <div class="reveal slide-kicker">GIẢI PHÁP — MỘT CÂU</div>
+      <div class="reveal sentence">Một học viên đọc bài chia sẻ · AI đọc cùng lúc và trả lời ngay: <span class="hl">claim này có nguồn đáng tin không</span>, kèm cảnh báo nếu phát hiện rủi ro tài chính/bảo mật.</div>
+      <div class="flow">
+        <div class="reveal flow-step">Tin nhắn</div>
+        <div class="flow-arrow">→</div>
+        <div class="reveal flow-step">Quét rủi ro + domain</div>
+        <div class="flow-arrow">→</div>
+        <div class="reveal flow-step">Trích xuất nội dung thật</div>
+        <div class="flow-arrow">→</div>
+        <div class="reveal flow-step">AI chấm verdict</div>
+        <div class="flow-arrow">→</div>
+        <div class="reveal flow-step">Reply dưới Discord</div>
+      </div>
+      <div class="page-num on-light">03</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — ARCHITECTURE -->
+  <section class="slide" id="s4">
+    <div class="full-white on-white">
+      <div class="brand-mark on-light">KIỂM CHỨNG NGUỒN</div>
+      <div class="reveal slide-kicker">KIẾN TRÚC PIPELINE</div>
+      <div class="reveal slide-title">Rule-based chạy trước, LLM chỉ diễn giải thêm — không tự quyết rủi ro.</div>
+      <div class="arch-row">
+        <div class="reveal arch-box risk"><h3>1 · Risk scan</h3><p>Regex phát hiện affiliate link, đổi BASE_URL, farming reward, brand/domain mismatch — chạy TRƯỚC AI, có quyền phủ quyết điểm số.</p></div>
+        <div class="reveal arch-box"><h3>2 · Domain tier</h3><p>Tra bảng uy tín: paper &gt; official-doc &gt; github &gt; blog &gt; domain lạ. Kiểm tra URL còn sống (reachable) thật.</p></div>
+        <div class="reveal arch-box"><h3>3 · Content extraction</h3><p>Tải và trích nội dung THẬT từ link (trafilatura/pypdf) — AI đối chiếu claim với bằng chứng cụ thể, không chỉ suy đoán theo domain.</p></div>
+        <div class="reveal arch-box"><h3>4 · LLM verdict</h3><p>OpenRouter (nemotron free) sinh verdict + độ tin cậy + giải thích + gợi ý hành động tiếp theo cho học viên.</p></div>
+      </div>
+      <div class="page-num on-light">04</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 — CASE STUDY: HIGH RISK -->
+  <section class="slide" id="s5">
+    <div class="case-slide">
+      <div class="case-left">
+        <div class="reveal case-tag danger">🚨 CASE RỦI RO CAO</div>
+        <div class="reveal msg-quote">"Dùng Claude Code với Opus 5 miễn phí qua Agent Router... đăng ký bằng GitHub nhận $100 tín dụng, mỗi ngày đăng xuất-đăng nhập lại nhận thêm $25..."</div>
+        <p class="reveal" style="font-size:20px;color:rgba(255,255,255,.6);line-height:1.6;">Bài chia sẻ thật từ kênh Discord (ẩn danh) — mời đổi endpoint dịch vụ AI sang bên thứ ba không chính thức.</p>
+      </div>
+      <div class="case-right">
+        <div class="reveal" style="font-family:var(--font-mono);font-size:20px;color:var(--text-muted);margin-bottom:18px;">BOT KIỂM CHỨNG NGUỒN TRẢ LỜI</div>
+        <div class="reveal verdict-box">
+          <div class="v-line"><b>Độ tin cậy</b><span class="val">15 / 100</span></div>
+          <div class="v-line"><b>Risk flag</b><span class="val" style="color:#c0392b;font-weight:700;">TRUE</span></div>
+          <div class="risk-reason">⚠️ Link đăng ký gắn mã giới thiệu (affiliate)</div>
+          <div class="risk-reason">⚠️ Yêu cầu đổi BASE_URL sang domain bên thứ ba</div>
+          <div class="risk-reason">⚠️ Cơ chế thưởng hằng ngày — dấu hiệu growth-hacking</div>
+          <div class="risk-reason">⚠️ Brand "Claude" nhưng domain không thuộc Anthropic</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 — CASE STUDY: GROUNDED VERIFICATION -->
+  <section class="slide" id="s6">
+    <div class="case-slide">
+      <div class="case-left">
+        <div class="reveal case-tag ok">✅ VÍ DỤ GROUNDED CHECK</div>
+        <div class="reveal msg-quote">"Cách fix lỗi CUDA out of memory khi finetune: giảm batch_size xuống 1 + bật gradient checkpointing. Repo mẫu: github.com/huggingface/transformers"</div>
+        <p class="reveal" style="font-size:20px;color:rgba(255,255,255,.6);line-height:1.6;">Domain uy tín (github, 70đ) — nhưng đó không phải là câu hỏi thật.</p>
+      </div>
+      <div class="case-right">
+        <div class="reveal" style="font-family:var(--font-mono);font-size:20px;color:var(--text-muted);margin-bottom:18px;">AI ĐỌC THẬT NỘI DUNG README</div>
+        <div class="reveal verdict-box">
+          <div class="v-line"><b>Verdict</b><span class="val">UNVERIFIED_NO_SOURCE</span></div>
+          <div class="v-line"><b>Đối chiếu nội dung</b><span class="val" style="color:var(--accent-green);font-weight:700;">✅ CÓ trích xuất</span></div>
+        </div>
+        <p class="reveal" style="font-size:22px;line-height:1.6;margin-top:24px;color:var(--text-dark);">README thật của <b>không hề nhắc đến</b> batch_size hay gradient checkpointing — dù domain đáng tin, AI vẫn hạ verdict vì nội dung không chứng minh được claim cụ thể. Đây là điểm khác domain-tier thường và grounded verification.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 — RESULTS -->
+  <section class="slide" id="s7">
+    <div class="full-dark on-dark">
+      <div class="brand-mark on-dark">KIỂM CHỨNG NGUỒN</div>
+      <div class="reveal slide-kicker">KẾT QUẢ KIỂM THỬ — AI THẬT</div>
+      <div class="reveal slide-title">17/17 tin nhắn, chạy qua OpenRouter, không mock.</div>
+      <div class="results-grid">
+        <div class="reveal rcard green"><div class="big">0%</div><div class="lbl">case bịa nguồn không tồn tại — tiêu chí cứng, đạt tuyệt đối</div></div>
+        <div class="reveal rcard green"><div class="big">2/2</div><div class="lbl">case rủi ro cao được gắn cờ đúng (proxy Claude Code không chính thức)</div></div>
+        <div class="reveal rcard"><div class="big">6/17</div><div class="lbl">case đối chiếu được nội dung thật của link, không chỉ đoán theo domain</div></div>
+      </div>
+      <div class="page-num on-dark">07</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 — KNOWN LIMITATIONS -->
+  <section class="slide" id="s8">
+    <div class="full-white on-white">
+      <div class="brand-mark on-light">KIỂM CHỨNG NGUỒN</div>
+      <div class="reveal slide-kicker">GIỚI HẠN ĐÃ BIẾT — MINH BẠCH</div>
+      <div class="reveal slide-title">Chưa hoàn hảo, và chúng tôi ghi rõ vì sao.</div>
+      <div class="limit-list">
+        <div class="reveal limit-item"><div class="tag">MODEL</div><p>Model AI miễn phí đôi khi quá thận trọng — luôn trả "chưa xác minh" thay vì dùng các nhãn tinh tế hơn (ý kiến cá nhân, đúng một phần...).</p></div>
+        <div class="reveal limit-item"><div class="tag">INPUT</div><p>Chỉ đọc được URL trong text — chưa đọc được file đính kèm Discord (ảnh, .txt, .pdf tải lên trực tiếp).</p></div>
+        <div class="reveal limit-item"><div class="tag">SCRAPE</div><p>Một số trang cần JavaScript hoặc chặn bot (PDF quét ảnh, Google Drive) — khi đó tự động lùi về đánh giá theo domain, có ghi rõ.</p></div>
+      </div>
+      <div class="page-num on-light">08</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 — CLOSING -->
+  <section class="slide" id="s9">
+    <div class="split">
+      <div class="panel-dark">
+        <div class="reveal kicker">CẢM ƠN</div>
+        <h2 class="reveal">Câu hỏi<br>&amp; Demo trực tiếp</h2>
+        <div class="thanks-list reveal">
+          Prototype: source_verify.py + demo-discord-ui.html<br>
+          Golden set: 17 case, 7 case từ dữ liệu thật (ẩn danh)<br>
+          Spec đầy đủ: spec-draft-kiem-chung-nguon.md
+        </div>
+      </div>
+      <div class="panel-white">
+        <div class="reveal qr-fake">🛡️</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<div class="deck-controls" id="deckControls"></div>
+
+<script>
+class SlidePresentation{
+  constructor(){
+    this.slides=document.querySelectorAll('.slide');
+    this.currentSlide=0;
+    this.stage=document.getElementById('deckStage');
+    this.setupStageScale();
+    this.setupKeyboardNav();
+    this.setupTouchNav();
+    this.buildDots();
+    this.showSlide(0);
+  }
+  setupStageScale(){
+    const scale=()=>{
+      const f=Math.min(innerWidth/1920, innerHeight/1080);
+      const x=(innerWidth-1920*f)/2, y=(innerHeight-1080*f)/2;
+      this.stage.style.transform=`translate(${x}px, ${y}px) scale(${f})`;
+    };
+    scale();
+    addEventListener('resize',scale);
+  }
+  setupKeyboardNav(){
+    document.addEventListener('keydown',e=>{
+      if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();this.showSlide(this.currentSlide+1);}
+      if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();this.showSlide(this.currentSlide-1);}
+    });
+  }
+  setupTouchNav(){
+    let x0=null;
+    document.addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+    document.addEventListener('touchend',e=>{
+      if(x0===null)return;
+      const dx=e.changedTouches[0].clientX-x0;
+      if(Math.abs(dx)>50)this.showSlide(this.currentSlide+(dx<0?1:-1));
+      x0=null;
+    });
+  }
+  buildDots(){
+    const wrap=document.getElementById('deckControls');
+    this.slides.forEach((s,i)=>{
+      const d=document.createElement('div');
+      d.style.cssText='width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:background .2s;';
+      d.addEventListener('click',()=>this.showSlide(i));
+      d.dataset.dot=i;
+      wrap.appendChild(d);
+    });
+  }
+  showSlide(i){
+    this.currentSlide=Math.max(0,Math.min(i,this.slides.length-1));
+    this.slides.forEach((s,idx)=>{
+      s.classList.toggle('active',idx===this.currentSlide);
+      s.classList.toggle('visible',idx===this.currentSlide);
+    });
+    document.querySelectorAll('#deckControls [data-dot]').forEach((d,idx)=>{
+      d.style.background=idx===this.currentSlide?'#4361ee':'rgba(255,255,255,.25)';
+    });
+  }
+}
+new SlidePresentation();
+</script>
+</body>
+</html>
