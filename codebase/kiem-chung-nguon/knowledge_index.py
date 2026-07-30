@@ -349,6 +349,74 @@ def suggest_reading(claim: str, top_k: int = 3, per_lecture: int = 1) -> dict:
     }
 
 
+# Heading la phan HANH CHINH / XA GIAO, khong phai kien thuc — khong bao gio
+# duoc goi y cho nguoi dung. Do duoc: khong loc thi chu de duoc goi y nhieu
+# nhat lai la "Trò chuyện bên lề trong lúc phát thẻ" (28 doan) va "Giới thiệu
+# giảng viên" (19 doan) — dung la nhung muc it gia tri nhat.
+_ADMIN_HEADING = re.compile(
+    r"(trò chuyện bên lề|giới thiệu giảng viên|làm quen|khảo sát|điểm danh|"
+    r"nghỉ giải lao|hoạt động lớp|mở đầu buổi|kết thúc buổi|thông báo|"
+    r"q&a: cách chọn project|chào hỏi)",
+    re.I,
+)
+
+# Chu de "co chat ky thuat" thi trong heading thuong co it nhat mot thuat ngu
+# viet bang chu Latin khong dau (agent, RAG, transformer, workflow...).
+_TERM_IN_HEADING = re.compile(r"\b[a-zA-Z][a-zA-Z\-]{2,}\b")
+
+
+def list_topics(min_segments: int = 3) -> list[tuple[str, str, int]]:
+    """Danh sach CHU DE bot tra loi duoc: (heading, lecture, so doan).
+
+    Lay tu heading '##' cua transcript va dong dau moi trang slide. Loai
+    heading hanh chinh/xa giao, va chi giu chu de co du so doan — chu de mot
+    doan thuong la cau chuyen ngoai le, goi y ra nguoi dung hoi lai cung
+    khong tra loi duoc tu te.
+    """
+    counter: dict[tuple[str, str], int] = {}
+    for s in get_index():
+        h = (s.heading or "").strip()
+        if len(h) < 8 or _ADMIN_HEADING.search(h):
+            continue
+        counter[(h, s.lecture)] = counter.get((h, s.lecture), 0) + 1
+    items = [(h, lec, n) for (h, lec), n in counter.items() if n >= min_segments]
+    # Uu tien chu de co thuat ngu ky thuat, roi moi den do phu
+    items.sort(key=lambda x: (-len(_TERM_IN_HEADING.findall(x[0])), -x[2]))
+    return items
+
+
+def suggest_topics(query: str = "", k: int = 3) -> list[dict]:
+    """Goi y CAU HOI KHAC ma bot tra loi duoc — dung khi cau hoi ngoai pham vi.
+
+    Uu tien chu de gan voi cau hoi nhat (con it lien quan cung con hon goi y
+    ngau nhien); khong lien quan gi thi lay chu de duoc giang nhieu nhat.
+    """
+    topics = list_topics()
+    if not topics:
+        return []
+
+    q = set(toks(query))
+    idf = get_idf()
+    scored = []
+    for rank, (h, lec, n) in enumerate(topics):
+        overlap = q & set(toks(h))
+        rel = sum(idf.get(t, 0.0) for t in overlap)
+        # `-rank` giu nguyen thu tu uu tien cua list_topics() khi khong lien quan
+        scored.append((rel, -rank, h, lec, n))
+    scored.sort(key=lambda x: (-x[0], -x[1]))
+
+    out, seen = [], set()
+    for rel, _rank, h, lec, n in scored:
+        key = h.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({"topic": h, "lecture": lec, "segments": n, "lien_quan": round(rel, 2)})
+        if len(out) >= k:
+            break
+    return out
+
+
 if __name__ == "__main__":
     idx = get_index()
     print(f"Da nap {len(idx)} doan tu {os.path.normpath(DEFAULT_TRANSCRIPT_DIR)}")

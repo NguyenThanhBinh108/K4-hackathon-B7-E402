@@ -267,8 +267,14 @@ def extract_urls(text: str) -> list[str]:
 # 2. LLM CALL THAT — day la buoc "AI chay that" theo luat hackathon
 # ---------------------------------------------------------------------------
 
-VERIFY_PROMPT_TEMPLATE = """Ban la AI kiem chung nguon cho kenh chia se kien thuc AI cua mot khoa hoc (~1000 hoc vien).
-Nhiem vu: doc mot tin nhan, tach claim chinh, va danh gia CO CAN THAN TRONG — khong duoc doan lieu.
+VERIFY_PROMPT_TEMPLATE = """Ban la tro ly cua mot khoa hoc AI (~1000 hoc vien), co HAI nhiem vu ngang nhau:
+
+  (A) TRA LOI CAU HOI cua hoc vien DUA TREN tai lieu va bai giang cua khoa.
+  (B) KIEM CHUNG NGUON khi hoc vien chia se mot khang dinh hoac mot link.
+
+Rat nhieu tin nhan la (A) chu khong phai (B) — dung mac dinh coi moi thu la claim
+can kiem chung. Doc ky phan "PHAN LOAI Y DINH" ben duoi truoc khi tra loi.
+Nguyen tac chung cho ca hai: CO CAN THAN TRONG, khong doan lieu.
 
 Tin nhan: "{text}"
 Link kem theo (neu co): {urls}
@@ -287,8 +293,27 @@ Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
   "explanation": "giai thich ngan gon, gan voi hanh dong tiep theo cho nguoi doc",
   "risk_class": "mot hoac nhieu trong ①②③④, cach nhau bang dau phay",
   "recommended_action": "nguoi doc nen lam gi tiep theo",
-  "reading_codes": ["ma doan bai giang THAT SU lien quan, vd T04-038 hoac D1-p07"]
+  "reading_codes": ["ma doan bai giang THAT SU lien quan, vd T04-038 hoac D1-p07"],
+  "intent": "kiem_chung | hoi_kien_thuc | ngoai_pham_vi",
+  "answer": "CHI dien khi intent=hoi_kien_thuc: cau tra loi <=4 cau, dua HOAN TOAN tren cac doan bai giang o tren"
 }}
+
+PHAN LOAI Y DINH — LAM TRUOC TIEN, quyet dinh toan bo cach tra loi:
+- "hoi_kien_thuc": nguoi dung DANG HOI ve noi dung khoa hoc (vd "RLHF nghia la gi",
+  "attention hoat dong the nao", "khi nao dung augment") VA trong cac doan bai giang
+  o tren CO doan tra loi duoc.
+  ==> LUAT CUNG: neu tin nhan la MOT CAU HOI ve chu de ky thuat/khoa hoc VA danh sach
+      doan bai giang o tren KHONG rong va co it nhat mot doan noi ve chu de do, thi
+      intent BAT BUOC la "hoi_kien_thuc". KHONG duoc tra ve "ngoai_pham_vi" trong
+      truong hop nay chi vi tin nhan khong phai mot claim dung/sai.
+  Khi do PHAI dien DU CA HAI: "answer" (tra loi <=4 cau, dua HOAN TOAN tren noi dung
+  cac doan do, KHONG them kien thuc ngoai, KHONG doan) VA "reading_codes" (ma cac
+  doan da dung de tra loi). Thieu mot trong hai thi cau tra loi bi bo di.
+  Chi khi cac doan THUC SU khong noi gi ve chu de duoc hoi -> "ngoai_pham_vi".
+- "kiem_chung": nguoi dung CHIA SE mot khang dinh / mot link / mot huong dan can
+  kiem chung dung-sai. Day la truong hop mac dinh khi tin nhan co link.
+- "ngoai_pham_vi": khong thuoc hai loai tren — vd hoi thoi tiet, gia vang, tan gau,
+  chao hoi, hoac hoi ve chu de khoa hoc KHONG day. Khi do de "answer" rong.
 
 QUY TAC BAT BUOC:
 - Tat ca gia tri text (claim, explanation, recommended_action) PHAI viet HOAN TOAN bang tieng Viet. KHONG duoc chen tu tieng Anh/Trung/Nga/Y hay ngon ngu khac vao giua cau (tru ten rieng/thuat ngu ky thuat khong co ban dich, vd "gradient checkpointing").
@@ -560,6 +585,9 @@ class VerificationResult:
     score_applicable: bool = True    # FIX-01 — False voi y kien ca nhan / cau hoi chinh sach
     reading: list = None             # FIX-16 — doan bai giang LLM xac nhan lien quan
     reading_candidates: int = 0      # so ung vien tu khoa dua len (de do do chinh xac)
+    intent: str = "kiem_chung"       # FIX-17 — kiem_chung | hoi_kien_thuc | ngoai_pham_vi
+    answer: str = ""                 # FIX-17 — cau tra loi dua tren tai lieu khoa
+    suggested_topics: list = None    # FIX-17 — chu de goi y khi ngoai pham vi
 
 
 # ---------------------------------------------------------------------------
@@ -706,6 +734,30 @@ def verify_message(msg: dict) -> VerificationResult:
     chosen = {str(c).strip().strip("[]") for c in chosen}
     reading = [c for c in reading_candidates if c["code"] in chosen][:2]
 
+    # FIX-17 — DINH TUYEN Y DINH.
+    # Truoc day moi input deu di qua khung "kiem chung nguon", nen mot cau hoi
+    # kien thuc ("RLHF nghia la gi") bi tra ve "UNVERIFIED_NO_SOURCE — 0/100".
+    # Do la khung SAI: nguoi ta hoi bai, khong chia se claim. Gio tach ba luong.
+    intent = str(llm_out.get("intent") or "kiem_chung").strip().lower()
+    if intent not in ("kiem_chung", "hoi_kien_thuc", "ngoai_pham_vi"):
+        intent = "kiem_chung"
+    answer = (llm_out.get("answer") or "").strip()
+
+    # Tu bao la tra loi duoc nhung khong tro vao doan nao -> khong duoc phep.
+    # Day chinh la cho AI de bia nhat: "tra loi theo tai lieu" ma khong co tai lieu.
+    if intent == "hoi_kien_thuc" and not (answer and reading):
+        intent = "ngoai_pham_vi"
+        answer = ""
+
+    suggested_topics = []
+    if intent == "ngoai_pham_vi":
+        try:
+            import knowledge_index as _ki
+
+            suggested_topics = _ki.suggest_topics(text, k=3)
+        except Exception:
+            suggested_topics = []
+
     verdict = llm_out.get("verdict", "UNVERIFIED_NO_SOURCE")
     final_score = aggregate_score(verdict, score, reachable, bool(extracted_content))
     if risk_flag:
@@ -737,6 +789,9 @@ def verify_message(msg: dict) -> VerificationResult:
         score_applicable=verdict not in NOT_SCORABLE_VERDICTS,
         reading=reading,
         reading_candidates=len(reading_candidates),
+        intent=intent,
+        answer=answer,
+        suggested_topics=suggested_topics,
     )
 
 

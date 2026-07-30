@@ -140,7 +140,71 @@ def log_run(message_id: int, user_id: int, result, source: str) -> None:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
+REFUSALS = [
+    "Câu này nằm ngoài phạm vi của mình rồi 😅",
+    "Cái này mình chịu thật — ngoài vùng phủ sóng của mình 🙃",
+    "Mình tra khắp tài liệu khoá mà không thấy gì về chuyện này 🤔",
+]
+
+
+def build_answer_embed(result) -> discord.Embed:
+    """Luong HOI KIEN THUC — tra loi THEO TAI LIEU, kem nguon. Khong co
+    'do tin cay' o day: nguoi ta hoi bai chu khong chia se claim de kiem chung."""
+    emb = discord.Embed(
+        title="📖 Trả lời theo tài liệu của khoá",
+        description=result.answer[:2000],
+        color=0x5865F2,
+    )
+    lines = []
+    for it in (result.reading or []):
+        heading = f" · {it['heading']}" if it.get("heading") else ""
+        lines.append(f"**`[{it['code']}]`** {it['lecture']}{heading}\n> {it['quote']}")
+    emb.add_field(
+        name="Nguồn — mở ra kiểm lại được",
+        value="\n\n".join(lines)[:1024] or "—",
+        inline=False,
+    )
+    emb.set_footer(text="Trả lời dựa hoàn toàn trên tài liệu khoá · không có trong tài liệu thì mình nói không biết")
+    return emb
+
+
+def build_refusal_embed(result, query: str) -> discord.Embed:
+    """Luong NGOAI PHAM VI — tu choi vui ve + goi y cau hoi khac hoi duoc.
+    Tu choi cut lung lam nguoi dung bo di; goi y cho ho biet HOI GI THI DUOC."""
+    idx = (len(query) + len(result.message_id)) % len(REFUSALS)   # doi cau, khong ngau nhien
+    emb = discord.Embed(
+        title=REFUSALS[idx],
+        description=(
+            "Mình chỉ trả lời được những gì **có trong tài liệu và bài giảng của khoá** "
+            "— thông báo, slide, transcript 6 buổi. Ngoài đó thì mình không đoán, "
+            "vì đoán sai còn hại hơn không trả lời."
+        ),
+        color=0xF0B232,
+    )
+    tops = result.suggested_topics or []
+    if tops:
+        emb.add_field(
+            name="💡 Thử hỏi mình mấy chủ đề này xem",
+            value="\n".join(f"• **{t['topic']}**\n  ↳ *{t['lecture']}* · {t['segments']} đoạn"
+                            for t in tops)[:1024],
+            inline=False,
+        )
+    emb.add_field(
+        name="Hoặc",
+        value="Dán một **link** (paper / GitHub / docs) để mình kiểm chứng nguồn giúp bạn.",
+        inline=False,
+    )
+    emb.set_footer(text="Bot kiểm chứng nguồn · prototype hackathon")
+    return emb
+
+
 def build_embed(result, reading: dict) -> discord.Embed:
+    # FIX-17 — ba luong khac nhau, khong nhet tat ca vao khung "kiem chung"
+    if result.intent == "hoi_kien_thuc" and result.answer:
+        return build_answer_embed(result)
+    if result.intent == "ngoai_pham_vi" and not result.risk_flag:
+        return build_refusal_embed(result, result.text)
+
     color = 0xF23F43 if result.risk_flag else VERDICT_COLOR.get(result.verdict, 0x949BA4)
     label = VERDICT_LABEL.get(result.verdict, "❔ Chưa xác minh được")
 
