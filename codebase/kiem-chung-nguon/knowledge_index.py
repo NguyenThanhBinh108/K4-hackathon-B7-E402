@@ -42,9 +42,13 @@ if sys.platform == "win32":
 MAX_QUOTE_CHARS = 220
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_TRANSCRIPT_DIR = os.environ.get(
-    "TRANSCRIPT_DIR",
-    os.path.join(BASE_DIR, "..", "..", "data", "vlearn-pack", "transcript"),
+# FIX-12: dung `or` chu KHONG dung tham so mac dinh cua os.environ.get().
+# File .env co dong `TRANSCRIPT_DIR=` (de trong co y) -> bien TON TAI voi gia
+# tri rong -> .get(key, default) tra ve chuoi rong chu khong tra ve default,
+# lam tinh nang "nen doc lai bai nao" tat ngam. Dung `or` de chuoi rong cung
+# roi ve duong dan mac dinh.
+DEFAULT_TRANSCRIPT_DIR = os.environ.get("TRANSCRIPT_DIR") or os.path.join(
+    BASE_DIR, "..", "..", "data", "vlearn-pack", "transcript"
 )
 
 SEGMENT_RE = re.compile(r"\*\*\[(T\d{2}-\d{3})\]\*\*\s*(.+?)(?=\n\*\*\[T\d{2}-\d{3}\]\*\*|\n##|\Z)", re.S)

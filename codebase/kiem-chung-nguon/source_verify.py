@@ -165,7 +165,19 @@ def _load_dotenv(path: str | None = None) -> None:
                 continue
             key, _, value = line.partition("=")
             key = key.strip()
-            value = value.strip().strip('"').strip("'")
+            value = value.strip()
+
+            # FIX-11: cat chu thich cung dong. Truoc day dong
+            #     AUTO_MIN_LEN=80          # bo qua tin ngan hon bay nhieu ky tu
+            # cho ra gia tri '80          # bo qua...' -> int() nem ValueError
+            # va bot chet ngay luc khoi dong. Chu thich trong ngoac kep thi giu.
+            if value[:1] in ('"', "'"):
+                quote = value[0]
+                end = value.find(quote, 1)
+                value = value[1:end] if end > 0 else value[1:]
+            else:
+                value = re.split(r"\s+#", value, maxsplit=1)[0].strip()
+
             if key:
                 os.environ.setdefault(key, value)
 
@@ -424,11 +436,37 @@ def llm_verify_claim(
 
 
 def _parse_llm_json(raw: str) -> dict:
-    raw = raw.strip()
-    # LLM doi khi boc trong ```json ... ``` -> bo di
+    """Tach JSON tu cau tra loi cua LLM.
+
+    FIX-10: model reasoning (vd nemotron qua OpenRouter) hay viet mot doan suy
+    nghi truoc roi moi ra JSON — kieu "Okay, the user wants me to... {json}".
+    Ban cu goi thang json.loads() nen gap truong hop do la nem JSONDecodeError,
+    ma loi nay KHONG duoc bat o verify_message() (chi bat LLMUnavailable) ->
+    chet ca luot chay giua chung. Gio: bo rao ```json, roi neu van khong parse
+    duoc thi cat lay khoi { ... } ngoai cung.
+    """
+    raw = (raw or "").strip()
     if raw.startswith("```"):
         raw = re.sub(r"^```(json)?", "", raw).rstrip("`").strip()
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+
+    # Thu parse tu TUNG dau '{' — raw_decode tu biet doan JSON ket thuc o dau,
+    # nen chiu duoc ca truong hop model viet mot dau '{' hong o doan suy nghi
+    # phia truoc roi moi ra JSON that.
+    decoder = json.JSONDecoder()
+    for i, ch in enumerate(raw):
+        if ch != "{":
+            continue
+        try:
+            obj, _ = decoder.raw_decode(raw, i)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict) and obj:
+            return obj
+    raise ValueError(f"Khong tach duoc JSON tu cau tra loi cua LLM: {raw[:200]!r}")
 
 
 def mock_llm_verify_claim(

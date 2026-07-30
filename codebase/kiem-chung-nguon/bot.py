@@ -72,10 +72,24 @@ GUILD_ID = os.environ.get("DISCORD_GUILD_ID", "")
 AUTO_CHANNEL_IDS = {
     int(x) for x in os.environ.get("AUTO_CHANNEL_IDS", "").replace(" ", "").split(",") if x.isdigit()
 }
+
+
+def _int_env(name: str, default: int) -> int:
+    """Doc bien so nguyen tu moi truong, KHONG chet neu gia tri hong.
+    Bot khong duoc phep chet luc khoi dong chi vi mot dong .env go sai."""
+    raw = (os.environ.get(name) or "").strip()
+    try:
+        return int(raw)
+    except ValueError:
+        if raw:
+            print(f"[!] {name}={raw!r} khong phai so — dung mac dinh {default}", file=sys.stderr)
+        return default
+
+
 # Do dai toi thieu de bot tu dong quet — tin ngan kieu "ok", "hihi" khong phai
 # claim kien thuc, quet chi ton quota va lam phien kenh.
-AUTO_MIN_LEN = int(os.environ.get("AUTO_MIN_LEN", "80"))
-COOLDOWN_SECONDS = int(os.environ.get("COOLDOWN_SECONDS", "20"))
+AUTO_MIN_LEN = _int_env("AUTO_MIN_LEN", 80)
+COOLDOWN_SECONDS = _int_env("COOLDOWN_SECONDS", 20)
 LOG_PATH = os.path.join(BASE_DIR, "..", "..", "eval", "kiem-chung-nguon", "bot-runs.jsonl")
 
 VERDICT_COLOR = {
@@ -210,11 +224,11 @@ class KcnBot(discord.Client):
             print("Da dong bo slash command toan cuc (co the cho toi 1 gio moi hien)")
 
     async def on_ready(self) -> None:
-        print(f"Bot online: {self.user}")
-        print(f"Che do AUTO: {'BAT cho kenh ' + str(AUTO_CHANNEL_IDS) if AUTO_CHANNEL_IDS else 'TAT (chi slash command)'}")
+        print(f"Bot online: {self.user}", flush=True)
+        print(f"Che do AUTO: {'BAT cho kenh ' + str(AUTO_CHANNEL_IDS) if AUTO_CHANNEL_IDS else 'TAT (chi slash command)'}", flush=True)
         try:
             n = len(knowledge_index.get_index())
-            print(f"Knowledge index: {n} doan bai giang")
+            print(f"Knowledge index: {n} doan bai giang", flush=True)
         except FileNotFoundError as e:
             print(f"[!] {e}\n    -> tinh nang 'nen doc lai bai nao' se khong chay", file=sys.stderr)
 
