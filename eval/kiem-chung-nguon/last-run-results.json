@@ -12,14 +12,16 @@
     "claim": "Mô hình AI cần trích dẫn nguồn khi trả lời.",
     "verdict": "VERIFIED",
     "llm_confidence": 95,
-    "final_credibility_score": 93,
+    "final_credibility_score": 95,
     "explanation": "Paper Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks chỉ ra việc cung cấp nguồn gốc (provenance) cho quyết định của model là một vấn đề nghiên cứu mở, cioè việc trích dẫn nguồn là cần thiết và được đề cập trong nghiên cứu.",
     "risk_class": "",
     "recommended_action": "Đọc toàn bộ paper để hiểu sâu hơn về cách RAG cung cấp nguồn và cân nhắc áp dụng trong hệ thống AI của mình.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": true
+    "content_extracted": true,
+    "score_applicable": true,
+    "extract_reason": "ok"
   },
   {
     "message_id": "M02",
@@ -34,14 +36,16 @@
     "claim": "Giảm batch_size xuống 1 và bật gradient checkpointing là cách fix lỗi CUDA out of memory khi finetune.",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 85,
-    "final_credibility_score": 79,
+    "final_credibility_score": 30,
     "explanation": "Nguồn cung cấp là trang GitHub của thư viện transformers, không chứa hướng dẫn về giảm batch_size hoặc bật gradient checkpointing để khắc phục lỗi CUDA out of memory, vì vậy claim không thể xác thực từ nguồn này.",
     "risk_class": "",
     "recommended_action": "Người đọc nên tham khảo tài liệu chính thức của PyTorch hoặc các hướng dẫn cụ thể về tối ưu hóa bộ nhớ GPU, thực nghiệm trên mô hình của mình để xác nhận hiệu quả của phương pháp này.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": true
+    "content_extracted": true,
+    "score_applicable": true,
+    "extract_reason": "ok"
   },
   {
     "message_id": "M03",
@@ -54,14 +58,16 @@
     "claim": "GPT-4 có 1.76 nghìn tỷ tham số",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 55,
-    "final_credibility_score": 33,
+    "final_credibility_score": 0,
     "explanation": "Không có nguồn cung cấp trong tin nhắn và dựa trên kiến thức hiện có, chúng tôi không thể xác nhận chính xác con số tham số của GPT-4, vì thông tin này thường không được công bố chính thức và chỉ có các ước tính.",
     "risk_class": "②",
     "recommended_action": "Người đọc nên tra cứu từ các nguồn đáng tin cậy như báo cáo nghiên cứu, bài báo uy tín hoặc 발표 oficial của OpenAI trước khi chấp nhận thông tin này.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M04",
@@ -74,14 +80,16 @@
     "claim": "Prompt engineering thực chất là mình đang train lại model đó mọi người, giống hệt fine-tuning luôn",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 90,
-    "final_credibility_score": 54,
+    "final_credibility_score": 0,
     "explanation": "Claim chưa có nguồn để xác thực; dựa trên kiến thức thường thấy, prompt engineering không phải là quá trình huấn luyện lại mô hình mà là việc thiết kế đầu vào.",
     "risk_class": "①",
     "recommended_action": "Người đọc nên tham khảo tài liệu học thuật hoặc nguồn uy tín về prompt engineering và fine-tuning để so sánh và xác thực thông tin.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M05",
@@ -94,14 +102,16 @@
     "claim": "set temperature=0 là AI sẽ luôn trả lời đúng 100%, không bao giờ hallucinate nữa",
     "verdict": "CONTRADICTED",
     "llm_confidence": 90,
-    "final_credibility_score": 54,
+    "final_credibility_score": 0,
     "explanation": "Thiết lập temperature=0 khiến đầu ra của mô hình trở nên xác định nhưng không loại bỏ hiện tượng hallucinate; mô hình vẫn có thể trả lời sai hoặc lập luận không có cơ sở do giới hạn dữ liệu huấn luyện và kiến trúc.",
     "risk_class": "②",
     "recommended_action": "Người đọc nên kiểm tra lại thông tin từ nhiều nguồn đáng tin cậy, không dựa vào việc đặt temperature=0 để bảo证 correctness, và sử dụng các phương pháp đánh giá như kiểm tra chéo, review bởi chuyên gia.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M06",
@@ -116,14 +126,16 @@
     "claim": "Anthropic vừa ra tài liệu mới hướng dẫn về prompt caching.",
     "verdict": "VERIFIED",
     "llm_confidence": 95,
-    "final_credibility_score": 92,
+    "final_credibility_score": 95,
     "explanation": "Trích xuất từ link cho thấy tài liệu chính thức trên docs.claude.com mô tả chi tiết về prompt caching, bao gồm cách sử dụng cache_control, TTL và ví dụ mã, đồngkhớp với tvrzení với tin nhắn nói Anthropic đã công bố tài liệu mới về tính năng này.",
     "risk_class": "",
     "recommended_action": "Người đọc có thể truy cập link đã cung cấp để tham khảo tài liệu chính xác và cập nhật về prompt caching.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": true
+    "content_extracted": true,
+    "score_applicable": true,
+    "extract_reason": "ok"
   },
   {
     "message_id": "M07",
@@ -136,14 +148,16 @@
     "claim": "Model Context Protocol (MCP) là chuẩn do Google phát triển từ năm 2023 nha mọi người, mình đọc ở đâu đó rồi",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 90,
-    "final_credibility_score": 54,
+    "final_credibility_score": 0,
     "explanation": "Chưa có nguồn được cung cấp để xác thực thông tin, do nội dung không thể được so sánh với tài liệu nào để xác định đúng hay sai.",
     "risk_class": "①",
     "recommended_action": "Người đọc nên tìm kiếm nguồn đáng tin cậy hoặc tài liệu chính thức từ Google để xác thực thông tin trước khi chia sẻ.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M08",
@@ -156,14 +170,16 @@
     "claim": "LangChain chậm hơn LlamaIndex",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 30,
-    "final_credibility_score": 18,
+    "final_credibility_score": 0,
     "explanation": "Không có nguồn tài liệu hoặc link để xác thực so sánh hiệu suất giữa LangChain và LlamaIndex, chỉ dựa trên cảm quan cá nhân nên không thể xác định đúng/sai.",
     "risk_class": "②",
     "recommended_action": "Người đọc nên tìm kiếm các bài kiểm tra hiệu suất công khai, thực nghiệm chuẩn hóa hoặc tham khảo tài liệu官方 của hai thư viện trước khi kết luận.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M09",
@@ -185,7 +201,9 @@
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M10",
@@ -198,14 +216,16 @@
     "claim": "RLHF là kỹ thuật OpenAI phát minh ra đầu tiên, dùng cho InstructGPT là bản đầu tiên áp dụng",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 85,
-    "final_credibility_score": 51,
+    "final_credibility_score": 0,
     "explanation": "Không có nguồn cung cấp để xác thực claim, cần tìm nguồn đáng tin cậy như bài báo gốc hoặc tài liệu từ OpenAI.",
     "risk_class": "",
     "recommended_action": "Tìm kiếm nguồn gốc từ bài báo công bố của OpenAI về RLHF và InstructGPT để xác thực.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M11",
@@ -221,14 +241,16 @@
     "claim": "Bộ tài liệu này cung cấp lộ trình từ ý tưởng đến sản phẩm AI thực tế bằng cách áp dụng Vibe Coding, và đã được chia sẻ trên cộng đồng đạt hơn 500.000 lượt truy cập.",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 35,
-    "final_credibility_score": 10,
+    "final_credibility_score": 0,
     "explanation": "Chưa thể truy cập nội dung các link để xác nhận, và domain không rõ ràng nên không thể xác thực claim; cần tìm nguồn tài liệu cụ thể hoặc xác thực từ các nguồn uy tín.",
     "risk_class": "②,④",
     "recommended_action": "Người đọc nên tìm kiếm bản tài liệu gốc trên các nền tảng uy tín, kiểm tra thông tin qua các nguồn học thuật hoặc cộng đồng AI nổi tiếng, và không dựa vào claim này trước khi có bằng chứng rõ ràng.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M12",
@@ -245,14 +267,16 @@
     "claim": "frontend-slides là một skill hữu ích để tạo slide thuyết trình HTML từ outline/ý tưởng/source code cho AI coding agent.",
     "verdict": "VERIFIED_SELF_PUBLISHED_TRANSPARENT",
     "llm_confidence": 95,
-    "final_credibility_score": 85,
+    "final_credibility_score": 86,
     "explanation": "Claim khớp với nội dung trích xuất từ repo frontend-slides, mô tả là một skill cho coding agent tạo bản trình HTML từ ý tưởng hoặc PowerPoint, có thể dùng qua Claude Code plugin hoặc SKILL.md.",
     "risk_class": "",
     "recommended_action": "Người đọc có thể truy cập repo GitHub frontend-slides để đọc hướng dẫn cài đặt và sử dụng skill này cho việc tạo slide thuyết trình HTML.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": true
+    "content_extracted": true,
+    "score_applicable": true,
+    "extract_reason": "ok"
   },
   {
     "message_id": "M13",
@@ -268,14 +292,16 @@
     "claim": "Bằng cách thực hiện các bước mô tả (mở DevTools, lọc request reader?, lấy lectureId và materialId, ghép vào URL CDN) người dùng có thể tải trực tiếp slide bài giảng từ VLearn dưới dạng file PDF.",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 30,
-    "final_credibility_score": 10,
+    "final_credibility_score": 0,
     "explanation": "Không thể truy xuất nội dung từ các link cung cấp để so sánh với claim; domain của link là unknown-domain với độ tin cậy thấp, do đó claim không thể xác thực được.",
     "risk_class": "",
     "recommended_action": "Người đọc nên tham khảo hướng dẫn chính thức của VLearn hoặc hỏi bộ phận hỗ trợ để xác nhận phương pháp tải slide, tránh dựa vào hướng dẫn không được xác thực.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M14",
@@ -303,7 +329,9 @@
       "[daily_login_farming_reward] Mô tả cơ chế lặp lại hằng ngày để nhận thêm tín dụng/tiền thưởng — dấu hiệu điển hình của referral/growth-hacking scheme, không phải chính sách chính thức thông thường của nhà cung cấp dịch vụ.",
       "[brand_domain_mismatch] Tin nhắn nhắc tới 'claude' nhưng URL đính kèm không thuộc domain chính thức của claude (anthropic.com, docs.claude.com, docs.anthropic.com, claude.com) — kiểm tra kỹ trước khi tin đây là thông tin/chương trình chính thức."
     ],
-    "content_extracted": true
+    "content_extracted": true,
+    "score_applicable": true,
+    "extract_reason": "ok"
   },
   {
     "message_id": "M15",
@@ -332,7 +360,9 @@
       "[daily_login_farming_reward] Mô tả cơ chế lặp lại hằng ngày để nhận thêm tín dụng/tiền thưởng — dấu hiệu điển hình của referral/growth-hacking scheme, không phải chính sách chính thức thông thường của nhà cung cấp dịch vụ.",
       "[brand_domain_mismatch] Tin nhắn nhắc tới 'claude' nhưng URL đính kèm không thuộc domain chính thức của claude (anthropic.com, docs.claude.com, docs.anthropic.com, claude.com) — kiểm tra kỹ trước khi tin đây là thông tin/chương trình chính thức."
     ],
-    "content_extracted": true
+    "content_extracted": true,
+    "score_applicable": true,
+    "extract_reason": "ok"
   },
   {
     "message_id": "M16",
@@ -345,14 +375,16 @@
     "claim": "Sử dụng bộ UI Design Keywords (thêm 10-20 từ khóa) giúp AI sinh giao diện đẹp hơn, nhất quán và giảm số lần tạo lại.",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 85,
-    "final_credibility_score": 51,
+    "final_credibility_score": 0,
     "explanation": "Không có nguồn liên kết hoặc tài liệu tham khảo nào được cung cấp để xác thực tác dụng của từ khóa thiết kế UI trên chất lượng giao diện AI; vì vậy claim chưa thể xác thực dựa trên thông tin có sẵn.",
     "risk_class": "",
     "recommended_action": "Người đọc nên tự thí nghiệm hoặc tìm kiếm nghiên cứu, benchmark về tác dụng của từ khóa thiết kế trên chất lượng UI AI trước khi áp dụng, và không dựa entièrement vào claim này mà không có bằng chứng.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   },
   {
     "message_id": "M17",
@@ -365,13 +397,15 @@
     "claim": "Bạn có thể mô phỏng thẻ học viên vật lý thành thẻ NFC trên điện thoại Android (Samsung, Xiaomi, OPPO, Vivo, Realme) bằng cách quét chip và lưu trong ví điện tử, cho phép dùng điện thoại thay thẻ vật lý.",
     "verdict": "UNVERIFIED_NO_SOURCE",
     "llm_confidence": 30,
-    "final_credibility_score": 18,
+    "final_credibility_score": 0,
     "explanation": "Chưa có nguồn đáng tin cậy nào được cung cấp để xác nhận claim; cần kiểm tra từ tài liệu kỹ thuật hoặc hướng dẫn của nhà sản xuất để xác thực khả năng sao chép thẻ NFC/RFID 13.56 MHz trên các thiết bị này.",
     "risk_class": "③",
     "recommended_action": "Người đọc nên tìm kiếm thông tin từ tài liệu resmi của Samsung Wallet hoặc các ứng dụng ví điện tử, và thận trọng khi sao chép thẻ truy cập để tránh rủi ro bảo mật.",
     "mode": "LIVE_AI",
     "risk_flag": false,
     "risk_reasons": [],
-    "content_extracted": false
+    "content_extracted": false,
+    "score_applicable": true,
+    "extract_reason": ""
   }
 ]

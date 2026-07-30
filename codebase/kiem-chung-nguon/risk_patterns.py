@@ -152,6 +152,17 @@ def scan_risk_patterns(text: str, urls: list) -> tuple[bool, list]:
 
 
 if __name__ == "__main__":
+    # FIX-01: console Windows (cp1252) khong in duoc tieng Viet co dau -> self-test
+    # nay tung crash bang UnicodeEncodeError ngay dong ly do dau tien.
+    import sys
+
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+            sys.stderr.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
+
     # Self-test nhanh voi case M14 tu golden set
     sample = (
         "Hướng dẫn dùng Claude Code với Claude Opus 5 miễn phí qua nền tảng "

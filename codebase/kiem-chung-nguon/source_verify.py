@@ -62,6 +62,16 @@ except ImportError:
 
 from risk_patterns import scan_risk_patterns
 
+# FIX-01: console Windows mac dinh dung codepage cp1252, in tieng Viet co dau
+# la UnicodeEncodeError -> crash ngay tin nhan dau tien. Ep stdout/stderr sang
+# UTF-8 truoc khi in bat cu thu gi. (Python 3.7+; khong anh huong macOS/Linux.)
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
 # Gioi han ky tu noi dung trich xuat dua vao prompt LLM — du de doi chieu
 # claim voi doan mo dau/abstract, khong lam prompt qua dai (ton token, de
 # vuot context window cua model free tier qua OpenRouter).
@@ -69,7 +79,7 @@ MAX_EXTRACT_CHARS = 1500
 FETCH_TIMEOUT_SECONDS = 8
 
 
-def fetch_source_content(url: str) -> str | None:
+def fetch_source_content(url: str) -> tuple[str | None, str]:
     """Tai va trich xuat noi dung CHINH (bo boilerplate menu/quang cao) tu 1 URL,
     de LLM doi chieu claim voi noi dung THAT thay vi chi doan theo domain tier.
 
@@ -77,23 +87,28 @@ def fetch_source_content(url: str) -> str | None:
       - Trang HTML thuong (paper abstract page, GitHub README, doc site) qua trafilatura.
       - File PDF truc tiep (vd link arxiv.org/pdf/...) qua pypdf, doc vai trang dau.
 
-    Tra ve None neu khong trich xuat duoc (PDF quet anh/scan, trang can JS,
-    bi chan bot, thieu thu vien, timeout...) — caller PHAI fallback ve
-    danh gia theo domain-tier nhu cu, KHONG duoc de loi nay lam crash pipeline.
+    FIX-04: tra ve (noi_dung | None, LY_DO). Truoc day chi tra None nen khi
+    THIEU THU VIEN (chua pip install trafilatura) san pham van bao "chua trich
+    xuat duoc noi dung that (PDF anh/JS-required/bi chan)" — do loi SAI nguyen
+    nhan, nguoi xem tuong link co van de. Gio phan biet ro:
+        "ok"                 — trich xuat duoc
+        "thieu-thu-vien"     — chua cai trafilatura/pypdf/requests
+        "khong-trich-xuat"   — link that su khong doc duoc (PDF anh, chan bot, JS, timeout)
+    Caller PHAI fallback ve danh gia theo domain-tier, KHONG duoc crash pipeline.
     """
     if requests is None:
-        return None
+        return None, "thieu-thu-vien"
     try:
         is_pdf_url = url.lower().split("?")[0].endswith(".pdf")
 
         if is_pdf_url:
             if PdfReader is None:
-                return None
+                return None, "thieu-thu-vien"
             resp = requests.get(url, timeout=FETCH_TIMEOUT_SECONDS, allow_redirects=True)
             resp.raise_for_status()
             ctype = resp.headers.get("content-type", "")
             if "pdf" not in ctype and "pdf" not in url.lower():
-                return None
+                return None, "khong-trich-xuat"
             from io import BytesIO
             reader = PdfReader(BytesIO(resp.content))
             text_parts = []
@@ -102,20 +117,33 @@ def fetch_source_content(url: str) -> str | None:
             text = "\n".join(text_parts).strip()
         else:
             if trafilatura is None:
-                return None
+                return None, "thieu-thu-vien"
             downloaded = trafilatura.fetch_url(url)
             if not downloaded:
-                return None
+                return None, "khong-trich-xuat"
             text = trafilatura.extract(downloaded) or ""
             text = text.strip()
 
         if not text:
-            return None
-        return text[:MAX_EXTRACT_CHARS]
+            return None, "khong-trich-xuat"
+        return text[:MAX_EXTRACT_CHARS], "ok"
     except Exception:
         # Bat moi loi (timeout, 403, PDF scan anh khong co text layer, HTML
         # loi ma hoa, v.v.) — day la best-effort, khong phai buoc bat buoc.
-        return None
+        return None, "khong-trich-xuat"
+
+
+def missing_optional_libs() -> list[str]:
+    """FIX-04: liet ke thu vien tuy chon con thieu, de canh bao RO o dau moi
+    lan chay thay vi de tinh nang trich xuat noi dung tat am tham."""
+    missing = []
+    if requests is None:
+        missing.append("requests")
+    if trafilatura is None:
+        missing.append("trafilatura")
+    if PdfReader is None:
+        missing.append("pypdf")
+    return missing
 
 
 def _load_dotenv(path: str | None = None) -> None:
@@ -208,9 +236,19 @@ def check_url_reachable(url: str, timeout: int = 6) -> bool | None:
 
 URL_RE = re.compile(r"https?://[^\s)>\]]+")
 
+# FIX-08: dau cau dinh o CUOI url khi nguoi ta viet "... https://abc.com, ..."
+# truoc day bi bat vao url -> sinh ra url rac kieu "https://agentrouter.org,"
+# (thay trong M15). Cat cac ky tu nay o cuoi, KHONG cat o giua url.
+_TRAILING_PUNCT = ".,;:!?\"'"
+
 
 def extract_urls(text: str) -> list[str]:
-    return URL_RE.findall(text)
+    urls = []
+    for raw in URL_RE.findall(text):
+        cleaned = raw.rstrip(_TRAILING_PUNCT)
+        if cleaned and cleaned not in urls:
+            urls.append(cleaned)
+    return urls
 
 
 # ---------------------------------------------------------------------------
@@ -380,7 +418,8 @@ def llm_verify_claim(
         return _parse_llm_json(raw)
 
     raise LLMUnavailable(
-        "Chua tim thay GEMINI_API_KEY hoac ANTHROPIC_API_KEY trong bien moi truong."
+        "Chua tim thay OPENROUTER_API_KEY, GEMINI_API_KEY hay ANTHROPIC_API_KEY "
+        "trong bien moi truong (hoac trong file .env cung thu muc)."
     )
 
 
@@ -432,7 +471,7 @@ def mock_llm_verify_claim(
         "confidence_llm": conf,
         "explanation": "[MOCK MODE — chua co API key that, day la heuristic don gian de test pipeline]",
         "risk_class": "①",
-        "recommended_action": "Cam GEMINI_API_KEY hoac ANTHROPIC_API_KEY de co verdict AI that.",
+        "recommended_action": "Cam OPENROUTER_API_KEY (hoac GEMINI_API_KEY / ANTHROPIC_API_KEY) de co verdict AI that.",
     }
 
 
@@ -460,13 +499,71 @@ class VerificationResult:
     risk_flag: bool = False          # TIP-02 — rui ro tai chinh/bao mat, tach khoi credibility
     risk_reasons: list = None        # TIP-02 — ly do cu the (tu rule-based scan_risk_patterns)
     content_extracted: bool = False  # TIP-05 — co trich xuat duoc noi dung that tu link khong
+    extract_reason: str = ""         # FIX-04 — ok | thieu-thu-vien | khong-trich-xuat
+    score_applicable: bool = True    # FIX-01 — False voi y kien ca nhan / cau hoi chinh sach
 
 
-def aggregate_score(domain_score: int, llm_confidence: int, url_reachable) -> int:
+# ---------------------------------------------------------------------------
+# FIX-01 — LOI NGHIEM TRONG NHAT DA SUA: diem tin cay tung tinh NGUOC HUONG.
+#
+# Cong thuc cu:  0.4 * domain_score + 0.6 * llm_confidence
+# Van de: prompt dinh nghia `confidence_llm` la "muc do AI TU TIN VAO VERDICT",
+# khong phai "muc do claim dang tin". Nen AI cang chac chan rang "cai nay SAI"
+# thi diem tin cay cang CAO. Hau qua do duoc tren lươt chay that:
+#     M05 CONTRADICTED (claim sai su that)  -> 54/100
+#     M02 UNVERIFIED_NO_SOURCE              -> 79/100  (thanh mau XANH tren UI)
+# Voi mot san pham ve NIEM TIN thi day la loi chet nguoi.
+#
+# Cong thuc moi: VERDICT quyet dinh DAI DIEM, chat luong bang chung (domain_score
+# + co doi chieu duoc noi dung that khong) quyet dinh VI TRI TRONG DAI.
+# `llm_confidence` KHONG con duoc cong vao diem tin cay nua — no chi con y nghia
+# la do tin cua AI vao phan quyet, van duoc luu lai trong ket qua de tra cuu.
+# ---------------------------------------------------------------------------
+
+VERDICT_BANDS = {
+    # Tran 95 chu khong phai 100 la co y: mot san pham kiem chung nguon khong
+    # nen bao gio tuyen bo chac chan tuyet doi (HAX G2 — dat ky vong thap hon
+    # kha nang mot chut, dung nguoc lai).
+    "VERIFIED":                            (70, 95),
+    "VERIFIED_SELF_PUBLISHED_TRANSPARENT": (60, 90),
+    "PARTIALLY_VERIFIED":                  (40, 70),
+    "PARTIALLY_CORRECT":                   (35, 65),
+    "UNVERIFIED_NO_SOURCE":                (0, 35),
+    "CONTRADICTED":                        (0, 10),
+    # Hai verdict duoi day KHONG phai phan xu dung/sai -> khong co "do tin cay"
+    "OPINION_NOT_APPLICABLE":              (0, 0),
+    "OUT_OF_SCOPE_POLICY_QUESTION":        (0, 0),
+}
+
+NOT_SCORABLE_VERDICTS = {"OPINION_NOT_APPLICABLE", "OUT_OF_SCOPE_POLICY_QUESTION"}
+
+
+def aggregate_score(
+    verdict: str,
+    domain_score: int,
+    url_reachable,
+    content_extracted: bool = False,
+) -> int:
+    """Diem tin cay 0-100. Dai diem do VERDICT quyet dinh; vi tri trong dai do
+    CHAT LUONG BANG CHUNG quyet dinh. Khong dung llm_confidence (xem ghi chu tren).
+    """
+    low, high = VERDICT_BANDS.get(verdict, VERDICT_BANDS["UNVERIFIED_NO_SOURCE"])
+    if high == low:
+        return low
+
+    # Suc manh bang chung 0..1: domain_score la chinh, doi chieu duoc noi dung
+    # that thi cong them (day la dung y cua TIP-05 — noi dung that > doan theo domain).
+    evidence = domain_score / 100.0
+    if content_extracted:
+        evidence = min(1.0, evidence + 0.15)
+
+    score = low + (high - low) * evidence
+
+    # Link chet/khong truy cap duoc -> tru thang, nhung khong tut khoi day dai.
     if url_reachable is False:
-        return max(0, min(domain_score, llm_confidence) - 20)
-    weight_domain, weight_llm = 0.4, 0.6
-    return round(domain_score * weight_domain + llm_confidence * weight_llm)
+        score = max(low, score - 20)
+
+    return int(round(score))
 
 
 def verify_message(msg: dict) -> VerificationResult:
@@ -479,10 +576,10 @@ def verify_message(msg: dict) -> VerificationResult:
         # TIP-05: thu trich xuat noi dung THAT tu link dau tien de doi chieu
         # claim, thay vi chi doan theo domain-tier. Best-effort — None neu
         # khong trich xuat duoc (PDF scan anh, trang chan bot, JS-required...).
-        extracted_content = fetch_source_content(urls[0])
+        extracted_content, extract_reason = fetch_source_content(urls[0])
     else:
         tier, score, reachable = "no-url", 0, None
-        extracted_content = None
+        extracted_content, extract_reason = None, "khong-co-link"
 
     domain_info = f"{tier} (diem co so {score})" if urls else "khong co link"
 
@@ -498,7 +595,8 @@ def verify_message(msg: dict) -> VerificationResult:
         llm_out = mock_llm_verify_claim(text, urls, domain_info, risk_reasons)
         mode = "MOCK"
 
-    final_score = aggregate_score(score, int(llm_out.get("confidence_llm", 0)), reachable)
+    verdict = llm_out.get("verdict", "UNVERIFIED_NO_SOURCE")
+    final_score = aggregate_score(verdict, score, reachable, bool(extracted_content))
     if risk_flag:
         # Case rui ro cao khong nen doc theo thang tin cay thong thuong —
         # ha ran credibility de khong bao gio hien nhu "kha tin" trong danh
@@ -514,7 +612,7 @@ def verify_message(msg: dict) -> VerificationResult:
         domain_score=score,
         url_reachable=reachable,
         claim=llm_out.get("claim", text[:120]),
-        verdict=llm_out.get("verdict", "UNVERIFIED_NO_SOURCE"),
+        verdict=verdict,
         llm_confidence=int(llm_out.get("confidence_llm", 0)),
         final_credibility_score=final_score,
         explanation=llm_out.get("explanation", ""),
@@ -524,6 +622,8 @@ def verify_message(msg: dict) -> VerificationResult:
         risk_flag=risk_flag,
         risk_reasons=risk_reasons,
         content_extracted=bool(extracted_content),
+        extract_reason=extract_reason,
+        score_applicable=verdict not in NOT_SCORABLE_VERDICTS,
     )
 
 
@@ -566,8 +666,15 @@ def format_discord_reply(r: VerificationResult) -> str:
             lines.append(f"  ⚠️ {reason}")
         lines.append("")  # dong trong tach biet canh bao voi phan verdict thuong
 
+    # FIX-01: y kien ca nhan / cau hoi chinh sach khong phai phan xu dung-sai
+    # -> khong hien thang diem tin cay (hien 0/100 se bi doc nham la "rat khong dang tin")
+    score_text = (
+        f"độ tin cậy {r.final_credibility_score}/100"
+        if r.score_applicable
+        else "không chấm độ tin cậy (đây không phải claim đúng/sai)"
+    )
     lines.append(
-        f"{verdict_emoji} **Kiểm chứng nguồn** — độ tin cậy {r.final_credibility_score}/100"
+        f"{verdict_emoji} **Kiểm chứng nguồn** — {score_text}"
         f" {'(⚠️ MOCK MODE — chưa phải AI thật)' if r.mode == 'MOCK' else ''}"
     )
     lines.append(f"Claim: {r.claim}")
@@ -576,11 +683,20 @@ def format_discord_reply(r: VerificationResult) -> str:
         lines.append(f"Nguồn: {r.urls[0]} (loại: {r.domain_tier}, reachable={r.url_reachable})")
         if len(r.urls) > 1:
             lines.append(f"  (+{len(r.urls) - 1} link khác trong tin nhắn — xem ghi chú kỹ thuật §multi-URL)")
-        lines.append(
-            "  ✅ Đã đối chiếu với nội dung thật trích xuất từ link"
-            if r.content_extracted
-            else "  ⚠️ Chưa trích xuất được nội dung thật (PDF ảnh/JS-required/bị chặn) — chỉ đánh giá theo độ uy tín domain"
-        )
+        # FIX-04: nói ĐÚNG nguyên nhân, không đổ hết cho link
+        if r.content_extracted:
+            lines.append("  ✅ Đã đối chiếu với nội dung thật trích xuất từ link")
+        elif r.extract_reason == "thieu-thu-vien":
+            lines.append(
+                "  ⛔ CHƯA CÀI THƯ VIỆN trích xuất (trafilatura/pypdf) — tính năng đối chiếu"
+                " nội dung thật đang TẮT, chỉ đánh giá theo độ uy tín domain."
+                " Chạy: pip install -r requirements.txt"
+            )
+        else:
+            lines.append(
+                "  ⚠️ Không trích xuất được nội dung thật (PDF ảnh/JS-required/bị chặn/timeout)"
+                " — chỉ đánh giá theo độ uy tín domain"
+            )
     else:
         lines.append("Nguồn: không có link đính kèm")
     lines.append(f"Giải thích: {r.explanation}")
@@ -617,12 +733,30 @@ def main():
         )
 
     results = []
-    print(f"Dang xu ly {len(messages)} tin nhan tu {data_path}\n" + "=" * 60)
     has_real_key = bool(
         os.environ.get("OPENROUTER_API_KEY")
         or os.environ.get("GEMINI_API_KEY")
         or os.environ.get("ANTHROPIC_API_KEY")
     )
+
+    # FIX-04: canh bao NGAY TU DAU neu thieu thu vien trich xuat, thay vi de
+    # tinh nang tat am tham roi bao "khong trich xuat duoc noi dung".
+    missing = missing_optional_libs()
+    if missing:
+        print(
+            f"⛔ THIEU THU VIEN: {', '.join(missing)} — tinh nang doi chieu noi dung that\n"
+            f"   (TIP-05) dang TAT, ket qua se chi danh gia theo domain-tier.\n"
+            f"   Chay: pip install -r requirements.txt\n",
+            file=sys.stderr,
+        )
+    if not has_real_key:
+        print(
+            "⚠️  Chua co API key -> se chay MOCK MODE (khong phai AI that).\n"
+            "   Ket qua se ghi ra file rieng, KHONG ghi de len ket qua LIVE_AI.\n",
+            file=sys.stderr,
+        )
+
+    print(f"Dang xu ly {len(messages)} tin nhan tu {data_path}\n" + "=" * 60)
     for i, msg in enumerate(messages):
         r = verify_message(msg)
         results.append(asdict(r))
@@ -634,17 +768,25 @@ def main():
         if has_real_key and i < len(messages) - 1:
             time.sleep(10)
 
+    # FIX-03: lươt chay co bat ky case MOCK nao thi KHONG duoc ghi de len file
+    # ket qua LIVE_AI — day la artifact bang chung cho R4. Truoc day chay thu
+    # khi chua cam key se xoa sach 17 ket qua AI that ma khong canh bao gi.
+    mock_count = sum(1 for r in results if r["mode"] == "MOCK")
+    if mock_count:
+        root, ext = os.path.splitext(out_path)
+        out_path = f"{root}-MOCK{ext}"
+
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print("\n" + "=" * 60)
-    print(f"Da luu {len(results)} ket qua vao {out_path}")
+    print(f"Da luu {len(results)} ket qua vao {os.path.normpath(out_path)}")
 
-    mock_count = sum(1 for r in results if r["mode"] == "MOCK")
     if mock_count:
         print(
             f"\n⚠️  {mock_count}/{len(results)} case chay o MOCK MODE (chua co API key that).\n"
-            "   Truoc khi demo/nop bai: export GEMINI_API_KEY=... (hoac ANTHROPIC_API_KEY=...)\n"
-            "   de day la loi goi AI that, dung theo luat hackathon."
+            "   Ket qua da ghi ra file *-MOCK.json — file ket qua LIVE_AI KHONG bi dong den.\n"
+            "   Truoc khi demo/nop bai: export OPENROUTER_API_KEY=... (hoac GEMINI_API_KEY=...,\n"
+            "   ANTHROPIC_API_KEY=...) de day la loi goi AI that, dung theo luat hackathon."
         )
 
 
