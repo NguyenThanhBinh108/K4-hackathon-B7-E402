@@ -198,9 +198,13 @@ def build_embed(result, reading: dict) -> discord.Embed:
 
 async def run_verification(text: str, msg_id: str) -> tuple[object, dict]:
     """Chay pipeline trong thread rieng — verify_message() goi mang va LLM,
-    chay thang trong event loop se treo ca bot."""
+    chay thang trong event loop se treo ca bot.
+
+    FIX-16: khong con goi suggest_reading() rieng o day nua. Tu khoa dua ung
+    vien vao ngay trong prompt kiem chung, LLM loc lai — nen `result.reading`
+    da la danh sach doan DA DUOC XAC NHAN lien quan."""
     result = await asyncio.to_thread(verify_message, {"id": msg_id, "author": "?", "text": text})
-    reading = await asyncio.to_thread(knowledge_index.suggest_reading, result.claim or text)
+    reading = {"found": bool(result.reading), "items": result.reading or []}
     return result, reading
 
 

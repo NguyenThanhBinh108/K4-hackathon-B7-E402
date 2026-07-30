@@ -276,6 +276,9 @@ Loai nguon cua link (da tra cuu truoc, khong can AI doan lai): {domain_info}
 Noi dung THAT trich xuat tu link (neu trich xuat duoc, da cat con {max_chars} ky tu dau): {extracted_content}
 Rui ro da phat hien truoc boi rule-based scan (neu co, KHONG duoc tu y bo qua hay ha thap muc do nghiem trong cua nhung dieu nay): {risk_reasons}
 
+Cac doan BAI GIANG CUA KHOA co the lien quan (do tim kiem tu khoa dua len, CHUA duoc kiem tra lien quan that su):
+{reading_candidates}
+
 Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
 {{
   "claim": "cau claim chinh duoc trich ra",
@@ -283,7 +286,8 @@ Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
   "confidence_llm": <so 0-100, muc do AI tu tin vao verdict nay>,
   "explanation": "giai thich ngan gon, gan voi hanh dong tiep theo cho nguoi doc",
   "risk_class": "mot hoac nhieu trong ①②③④, cach nhau bang dau phay",
-  "recommended_action": "nguoi doc nen lam gi tiep theo"
+  "recommended_action": "nguoi doc nen lam gi tiep theo",
+  "reading_codes": ["ma doan bai giang THAT SU lien quan, vd T04-038 hoac D1-p07"]
 }}
 
 QUY TAC BAT BUOC:
@@ -296,6 +300,11 @@ QUY TAC BAT BUOC:
 - Neu "Noi dung THAT trich xuat tu link" CO gia tri (khong phai "khong trich xuat duoc") -> BAT BUOC doi chieu claim voi noi dung nay truoc tien. Neu claim KHOP voi noi dung -> co the dung VERIFIED (khong chi PARTIALLY_VERIFIED). Neu claim MAU THUAN voi noi dung trich xuat -> verdict PHAI la CONTRADICTED du domain co uy tin the nao.
 - Neu "Noi dung THAT trich xuat tu link" la "khong trich xuat duoc" (vd PDF anh, trang chan bot, het thoi gian) -> KHONG duoc coi day la dau hieu xau, chi danh gia lui ve domain-tier nhu binh thuong, va PHAI ghi ro trong explanation la "chua doi chieu duoc noi dung that, chi danh gia theo do uy tin domain".
 - KHONG duoc tu bia ra mot URL/nguon khong co trong "Link kem theo" de lam bang chung.
+- Voi "reading_codes": chi chon nhung ma doan bai giang THAT SU noi ve chu de cua claim.
+  Tim kiem tu khoa dua len la ban NHAP THO, no thuong dua nham (vd cau hoi ve thoi tiet
+  van ra mot doan bai giang vi trung tu thong thuong). Doan nao khong lien quan thi BO.
+  Khong lien quan doan nao -> tra ve mang RONG []. KHONG duoc bia ma doan khong co trong
+  danh sach tren. Toi da 2 ma.
 """
 
 
@@ -309,10 +318,19 @@ def llm_verify_claim(
     domain_info: str,
     risk_reasons: list[str] | None = None,
     extracted_content: str | None = None,
+    reading_candidates: list[dict] | None = None,
 ) -> dict:
     """Goi LLM that (OpenRouter uu tien, fallback Gemini/Anthropic).
     Neu khong co API key -> raise LLMUnavailable de caller chuyen sang mock mode.
     """
+    if reading_candidates:
+        cand_txt = "\n".join(
+            f"- [{c['code']}] ({c['lecture']} · muc: {c['heading']}) {c['quote'][:160]}"
+            for c in reading_candidates
+        )
+    else:
+        cand_txt = "khong tim thay doan nao"
+
     prompt = VERIFY_PROMPT_TEMPLATE.format(
         text=text,
         urls=urls or "khong co",
@@ -320,6 +338,7 @@ def llm_verify_claim(
         max_chars=MAX_EXTRACT_CHARS,
         extracted_content=(extracted_content if extracted_content else "khong trich xuat duoc"),
         risk_reasons=("; ".join(risk_reasons) if risk_reasons else "khong co"),
+        reading_candidates=cand_txt,
     )
 
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
@@ -539,6 +558,8 @@ class VerificationResult:
     content_extracted: bool = False  # TIP-05 — co trich xuat duoc noi dung that tu link khong
     extract_reason: str = ""         # FIX-04 — ok | thieu-thu-vien | khong-trich-xuat
     score_applicable: bool = True    # FIX-01 — False voi y kien ca nhan / cau hoi chinh sach
+    reading: list = None             # FIX-16 — doan bai giang LLM xac nhan lien quan
+    reading_candidates: int = 0      # so ung vien tu khoa dua len (de do do chinh xac)
 
 
 # ---------------------------------------------------------------------------
@@ -604,9 +625,39 @@ def aggregate_score(
     return int(round(score))
 
 
+# FIX-14: 1252/1261 (99.3%) tin nhan hoc vien trong chatlog VLearn co dang
+#     (Trang 22, đoạn được chọn: "<doan slide>") <cau hoi that>
+# Neu de nguyen ca cum nay lam input thi claim trich ra bi nhiem phan meta
+# ("Trang 22", "đoạn được chọn") va doan slide bi lap hai lan. Tach ra: doan
+# slide la NGU CANH, phan sau moi la cau hoi/khang dinh can kiem chung.
+VLEARN_PREFIX_RE = re.compile(
+    r'^\(\s*Trang\s*\d+\s*,\s*đoạn được chọn:\s*"(?P<sel>.*?)"\s*\)\s*(?P<q>.*)$',
+    re.S | re.I,
+)
+
+
+def split_vlearn_context(text: str) -> tuple[str, str]:
+    """Tra ve (cau_hoi, doan_slide_duoc_chon).
+
+    Khong phai dinh dang VLearn -> tra ve (text, "") nguyen ven, nen goi ham
+    nay cho MOI input deu an toan (tin nhan Discord thuong khong co tien to).
+    """
+    m = VLEARN_PREFIX_RE.match(text.strip())
+    if not m:
+        return text, ""
+    q = (m.group("q") or "").strip()
+    sel = (m.group("sel") or "").strip()
+    # Hoc vien hay boi den mot cum roi go "nghia la gi" -> cau hoi cut nghia,
+    # phai ghep doan boi den vao moi hieu duoc hoi cai gi.
+    if len(q) < 15 and sel:
+        q = f"{sel} — {q}" if q else sel
+    return (q or sel), sel
+
+
 def verify_message(msg: dict) -> VerificationResult:
-    text = msg["text"]
-    urls = extract_urls(text)
+    raw_text = msg["text"]
+    text, _selected = split_vlearn_context(raw_text)
+    urls = extract_urls(raw_text)
 
     if urls:
         tier, score = classify_domain(urls[0])
@@ -625,13 +676,35 @@ def verify_message(msg: dict) -> VerificationResult:
     # them, khong tu quyet risk_flag tu dau (tranh bo sot vi "nghe hop ly")
     risk_flag, risk_reasons = scan_risk_patterns(text, urls)
 
+    # FIX-16: tim doan bai giang lien quan bang tu khoa (DO PHU cao, do chinh
+    # xac thap) roi de LLM loc lai o buoc duoi. Ly do doi kien truc: xem ghi
+    # chu MIN_IDF_MASS trong knowledge_index.py — bag-of-words tren tieng Viet
+    # bo dau khong tu phan biet duoc "thuat ngu cua khoa" voi "tu thong thuong".
+    reading_candidates: list[dict] = []
+    try:
+        import knowledge_index
+
+        reading_candidates = knowledge_index.suggest_reading(text, top_k=5)["items"]
+    except Exception as e:   # thieu transcript / loi doc file -> bo qua, khong chet
+        print(f"  [!] khong nap duoc bai giang: {e}", file=sys.stderr)
+
     mode = "LIVE_AI"
     try:
-        llm_out = llm_verify_claim(text, urls, domain_info, risk_reasons, extracted_content)
+        llm_out = llm_verify_claim(
+            text, urls, domain_info, risk_reasons, extracted_content, reading_candidates
+        )
     except LLMUnavailable as e:
         print(f"  [!] {e} -> chuyen sang MOCK MODE cho message {msg['id']}", file=sys.stderr)
         llm_out = mock_llm_verify_claim(text, urls, domain_info, risk_reasons)
         mode = "MOCK"
+
+    # Chi giu lai doan ma LLM xac nhan la that su lien quan. LLM khong chon ->
+    # khong goi y gi, KHONG am tham quay ve danh sach tho cua tu khoa.
+    chosen = llm_out.get("reading_codes") or []
+    if isinstance(chosen, str):
+        chosen = [chosen]
+    chosen = {str(c).strip().strip("[]") for c in chosen}
+    reading = [c for c in reading_candidates if c["code"] in chosen][:2]
 
     verdict = llm_out.get("verdict", "UNVERIFIED_NO_SOURCE")
     final_score = aggregate_score(verdict, score, reachable, bool(extracted_content))
@@ -644,7 +717,7 @@ def verify_message(msg: dict) -> VerificationResult:
     return VerificationResult(
         message_id=msg["id"],
         author=msg.get("author", "?"),
-        text=text,
+        text=raw_text,   # giu nguyen van de doi chieu; `text` la ban da tach tien to
         urls=urls,
         domain_tier=tier,
         domain_score=score,
@@ -662,6 +735,8 @@ def verify_message(msg: dict) -> VerificationResult:
         content_extracted=bool(extracted_content),
         extract_reason=extract_reason,
         score_applicable=verdict not in NOT_SCORABLE_VERDICTS,
+        reading=reading,
+        reading_candidates=len(reading_candidates),
     )
 
 

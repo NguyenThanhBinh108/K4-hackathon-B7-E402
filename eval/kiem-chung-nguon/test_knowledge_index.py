@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
 """
-test_knowledge_index.py — bo case cho module "cần bổ sung kiến thức gì, đọc bài nào".
+test_knowledge_index.py — do LOP TU KHOA THO cua module "đọc bài nào".
 
-Do DUNG mot chieu chat luong duy nhat, kiem chung duoc: voi mot cau hoi, module
-CO nen goi y doan bai giang hay KHONG. Nguoi ngoai nhom chay lai se ra cung ket qua.
+DOC KY PHAN NAY TRUOC KHI DOC CON SO
+-------------------------------------
+Ban dau lop tu khoa vua lo do phu vua lo do chinh xac, va bo test nay do ca hai
+(dat 12/13 = 92%). Sau khi do tren du lieu that, ba cach chan cau ngoai pham vi
+bang tu khoa deu that bai — bag-of-words tren tieng Viet bo dau khong phan biet
+duoc "thuat ngu cua khoa" voi "tu thong thuong" ('phở' -> 'pho' <- 'phổ biến').
+Xem BAO-CAO-KIEM-CHUNG-DATA.md muc 3.
 
-Vi sao chieu nay quan trong hon "goi y co dung doan khong": goi y sai mot doan
-bai giang lam hoc vien doc nham, con te hon la khong goi y gi. Nen bar dat o
-cho "biet khi nao NEN IM LANG".
+Nen kien truc da doi: tu khoa lo DO PHU (nguong ha xuong), LLM lo DO CHINH XAC
+(loc lai trong llm_verify_claim). Vi vay bo test nay gio do DUNG MOT THU:
+
+    DO PHU — cau hoi dung chu de khoa hoc thi PHAI ra duoc ung vien.
+
+Phan "nen im lang" van chay va van in ra, nhung la SO THAM KHAO: o kien truc
+moi, viec loai ung vien rac la nhiem vu cua buoc LLM, do bang
+`run_golden_set.py --dim full`. Con so tut tu 92% xuong la HE QUA CO Y cua viec
+doi kien truc, khong phai chat luong giam — do full pipeline thi 6 case kho
+tang tu 2/6 len 4/6.
 
 Chay:  python3 test_knowledge_index.py
 """
@@ -48,36 +60,42 @@ CASES = [
 
 def main() -> int:
     idx = K.get_index()
-    print(f"Index: {len(idx)} đoạn từ 6 transcript\n")
+    n_slide = sum(1 for s in idx if s.code[0] == "D")
+    print(f"Index: {len(idx)} đoạn ({len(idx)-n_slide} từ transcript + {n_slide} từ slide)\n")
     print(f"{'':<4}{'mong đợi':<10}{'thực tế':<10}{'câu hỏi':<52}{'đoạn đầu'}")
     print("-" * 100)
 
-    passed = 0
-    fails = []
+    pos = [c for c in CASES if c[1]]
+    neg = [c for c in CASES if not c[1]]
+    pos_ok = neg_ok = 0
     for query, expect, why in CASES:
         out = K.suggest_reading(query)
         got = out["found"]
         top = out["items"][0] if out["items"] else None
-        mark = "✓" if got == expect else "✗"
-        if got == expect:
-            passed += 1
-        else:
-            fails.append((query, expect, got, why))
+        ok = got == expect
+        if expect and ok:
+            pos_ok += 1
+        elif not expect and ok:
+            neg_ok += 1
+        mark = "✓" if ok else ("✗" if expect else "·")
+        top_s = "{} ({})".format(top["code"], top["score"]) if top else "—"
         exp_s = "gợi ý" if expect else "im lặng"
         got_s = "gợi ý" if got else "im lặng"
-        top_s = f"{top['code']} ({top['score']})" if top else "—"
         print(f"{mark:<4}{exp_s:<10}{got_s:<10}{query[:50]:<52}{top_s}")
 
-    pct = 100 * passed / len(CASES)
     print("-" * 100)
-    print(f"{passed}/{len(CASES)} đạt ({pct:.0f}%)")
+    print(f"ĐỘ PHỦ (tiêu chí đạt/không đạt): {pos_ok}/{len(pos)} câu đúng chủ đề ra được ứng viên "
+          f"({100*pos_ok/len(pos):.0f}%)")
+    print(f"Tham khảo — im lặng đúng ở lớp thô: {neg_ok}/{len(neg)}. "
+          f"Lọc ứng viên rác là việc của bước LLM, đo bằng: run_golden_set.py --dim full")
 
-    if fails:
-        print("\nCase chưa đạt — ghi nhận trung thực, không chỉnh ngưỡng cho vừa:")
-        for q, e, g, why in fails:
-            print(f"  · {q!r}\n    mong {'gợi ý' if e else 'im lặng'}, thực tế {'gợi ý' if g else 'im lặng'} — {why}")
+    miss = [c for c in pos if not K.suggest_reading(c[0])["found"]]
+    if miss:
+        print("\nCâu đúng chủ đề mà KHÔNG ra ứng viên (lỗi độ phủ — phải sửa):")
+        for q, _, why in miss:
+            print(f"  · {q!r} — {why}")
 
-    return 0 if pct >= 80 else 1
+    return 0 if pos_ok == len(pos) else 1
 
 
 if __name__ == "__main__":

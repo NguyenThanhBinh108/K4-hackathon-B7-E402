@@ -50,6 +50,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_TRANSCRIPT_DIR = os.environ.get("TRANSCRIPT_DIR") or os.path.join(
     BASE_DIR, "..", "..", "data", "vlearn-pack", "transcript"
 )
+# FIX-15: data pack CO 2 bo slide bai giang ma truoc day index khong dung.
+# Do duoc: 6 transcript chi phu Day 1-Day 2 phan giang noi; nhieu thuat ngu
+# hoc vien hoi that (RLHF, temperature, benchmark, RAG) nam o SLIDE chu khong
+# nam trong loi giang. Nap them slide => tang do phu, va trich dan duoc theo
+# so trang [D1-p07] dung nhu cach khoa quy dinh.
+DEFAULT_SLIDE_DIR = os.environ.get("SLIDE_DIR") or os.path.join(
+    BASE_DIR, "..", "..", "data", "vlearn-pack", "slides"
+)
 
 SEGMENT_RE = re.compile(r"\*\*\[(T\d{2}-\d{3})\]\*\*\s*(.+?)(?=\n\*\*\[T\d{2}-\d{3}\]\*\*|\n##|\Z)", re.S)
 HEADING_RE = re.compile(r"^##\s+(.+)$", re.M)
@@ -146,6 +154,45 @@ def build_index(transcript_dir: str = DEFAULT_TRANSCRIPT_DIR) -> list[Segment]:
     return segments
 
 
+def build_slide_index(slide_dir: str = DEFAULT_SLIDE_DIR) -> list[Segment]:
+    """Nap 2 bo slide bai giang — moi TRANG la mot doan, ma trich dan [D1-p07].
+
+    Best-effort: thieu pypdf hoac thieu file thi tra ve rong, KHONG lam chet
+    ca index (transcript van dung duoc). Trang gan nhu khong co text (slide
+    toan anh) bi bo qua.
+    """
+    if not os.path.isdir(slide_dir):
+        return []
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        print("[!] Chua cai pypdf -> khong nap duoc slide vao index", file=sys.stderr)
+        return []
+
+    segs: list[Segment] = []
+    for name in sorted(os.listdir(slide_dir)):
+        if not name.lower().endswith(".pdf"):
+            continue
+        day = "D1" if name.lower().startswith("d1") else "D2" if name.lower().startswith("d2") else name[:2].upper()
+        lecture = f"Slide bài giảng {'Day 1' if day == 'D1' else 'Day 2' if day == 'D2' else day}"
+        try:
+            reader = PdfReader(os.path.join(slide_dir, name))
+        except Exception as e:
+            print(f"[!] Khong doc duoc {name}: {e}", file=sys.stderr)
+            continue
+        for i, page in enumerate(reader.pages, start=1):
+            try:
+                text = (page.extract_text() or "").strip()
+            except Exception:
+                continue
+            if len(text) < 40:
+                continue  # trang toan anh / trang bia
+            first_line = re.split(r"[\n\r]", text, maxsplit=1)[0].strip()[:80]
+            segs.append(Segment(f"{day}-p{i:02d}", re.sub(r"\s+", " ", text),
+                                first_line, lecture, name))
+    return segs
+
+
 _INDEX: list[Segment] | None = None
 _IDF: dict[str, float] | None = None
 
@@ -153,7 +200,7 @@ _IDF: dict[str, float] | None = None
 def get_index(transcript_dir: str = DEFAULT_TRANSCRIPT_DIR) -> list[Segment]:
     global _INDEX
     if _INDEX is None:
-        _INDEX = build_index(transcript_dir)
+        _INDEX = build_index(transcript_dir) + build_slide_index()
     return _INDEX
 
 
@@ -177,10 +224,23 @@ def get_idf() -> dict[str, float]:
     return _IDF
 
 
-# Doan phai khop it nhat bay nhieu "khoi luong IDF" thi moi duoc coi la lien
-# quan. Day la cong CHONG CAU HOI NGOAI PHAM VI: khop toan tu pho bien
-# ('cach', 'lam', 'gia', 'nhieu') thi khoi luong rat nho du ty le khop cao.
-MIN_IDF_MASS = 6.0
+# Nguong "khoi luong IDF" toi thieu de mot doan duoc coi la ung vien.
+#
+# LICH SU CHINH NGUONG NAY — ghi lai de dung tu chinh nua ma khong co du lieu:
+# Da thu BA cach chan cau hoi ngoai pham vi bang tu khoa, deu do tren du lieu
+# that va deu that bai:
+#   1. Ty le khop IDF        -> 'giá vàng hôm nay' dat 0.70 (khop toan tu pho bien)
+#   2. Khoi luong IDF >= 6.0 -> chan duoc cau rac, nhung chan luon 'benchmark la gi'
+#                               (4.71) va 'ReAct... trong Agent' (5.62) — hoi dung
+#                               chu de cot loi ma bi im lang
+#   3. Max-IDF               -> 'cách nấu phở bò' co max 5.96 (tu 'nau' hiem),
+#                               CAO HON ca 'benchmark' 4.71 -> khong phan tach duoc
+#   4. Tu vung >=2 file nguon-> 940 tu, van dinh 'phở'<-'phổ biến', 'vàng', 'mai'
+#
+# Ket luan: bag-of-words tren tieng Viet bo dau KHONG the phan biet "thuat ngu
+# cua khoa" voi "tu tieng Viet thong thuong". Nen doi kien truc: tu khoa lo
+# DO PHU (nguong thap), LLM lo DO CHINH XAC (loc lai trong llm_verify_claim).
+MIN_IDF_MASS = 3.0
 
 
 def search(query: str, top_k: int = 3, min_score: float = 0.25) -> list[tuple[Segment, float]]:
@@ -246,17 +306,36 @@ def search(query: str, top_k: int = 3, min_score: float = 0.25) -> list[tuple[Se
     return scored[:top_k]
 
 
-def suggest_reading(claim: str, top_k: int = 3) -> dict:
+def suggest_reading(claim: str, top_k: int = 3, per_lecture: int = 1) -> dict:
     """Dau ra dung cho bot Discord.
 
     Tra ve dict:
       {"found": bool, "items": [{"code","lecture","heading","quote","score"}]}
     Khong tim thay -> found=False, va bot PHAI noi ro "khong thay trong bai
     giang cua khoa" thay vi bia ra mot buoi hoc nao do.
+
+    FIX-13 (`per_lecture`): do tren 40 cau hoi that lay tu chatlog, **25/34
+    truong hop top-k tra ve nhieu doan CUNG MOT BUOI** — nguoi doc phai doc hai
+    lan gan nhu cung mot chuyen, va mat co hoi biet buoi khac cung noi ve no.
+    Gio moi buoi chi lay doan diem cao nhat; muon nhieu doan cung buoi thi tang
+    `per_lecture`.
     """
-    hits = search(claim, top_k=top_k)
+    # Lay du roi moi loc, de sau khi bo trung van con du top_k
+    hits = search(claim, top_k=top_k * 4)
+
+    picked: list[tuple[Segment, float]] = []
+    seen_per_lecture: dict[str, int] = {}
+    for seg, sc in hits:
+        n = seen_per_lecture.get(seg.lecture, 0)
+        if n >= per_lecture:
+            continue
+        seen_per_lecture[seg.lecture] = n + 1
+        picked.append((seg, sc))
+        if len(picked) >= top_k:
+            break
+
     return {
-        "found": bool(hits),
+        "found": bool(picked),
         "items": [
             {
                 "code": s.code,
@@ -265,7 +344,7 @@ def suggest_reading(claim: str, top_k: int = 3) -> dict:
                 "quote": s.quote(),
                 "score": sc,
             }
-            for s, sc in hits
+            for s, sc in picked
         ],
     }
 
