@@ -2,3 +2,4 @@
 requests>=2.31
 trafilatura>=1.8   # trich xuat noi dung chinh tu HTML (bo boilerplate)
 pypdf>=4.0         # doc text tu PDF (vd link arxiv.org/pdf/...)
+discord.py>=2.3    # bot Discord (bot.py) — khong can neu chi chay source_verify.py

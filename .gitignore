@@ -7,3 +7,4 @@ codebase/kiem-chung-nguon/COMPLETION-REPORT-TIP-01-04.md
 # Ket qua chay MOCK MODE (khong phai AI that) — khong tinh la bang chung
 eval/**/last-run-results*-MOCK.json
 eval/**/*.bak
+eval/kiem-chung-nguon/bot-runs.jsonl
