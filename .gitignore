@@ -8,3 +8,4 @@ codebase/kiem-chung-nguon/COMPLETION-REPORT-TIP-01-04.md
 eval/**/last-run-results*-MOCK.json
 eval/**/*.bak
 eval/kiem-chung-nguon/bot-runs.jsonl
+__pycache__/
