@@ -1,7 +1,31 @@
 import os
 import json
+import hashlib
+import time
 import google.generativeai as genai
 from typing import Optional
+
+# ── AI Call Logger (evidence cho eval/) ───────────────────────────────────
+LOG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "..", "eval", "ai_call_log.jsonl")
+
+def log_ai_call(route: str, model: str, prompt: str, has_citation: bool, success: bool = True, case_id: str = None):
+    """Log mỗi lời gọi AI thật để có trace evidence trong repo."""
+    try:
+        os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+        entry = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "route": route,
+            "model": model,
+            "input_hash": hashlib.md5(prompt.encode()).hexdigest()[:8],
+            "prompt_length": len(prompt),
+            "has_citation": has_citation,
+            "success": success,
+            "golden_case": case_id
+        }
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # logging không được làm crash main flow
 
 # ── Configure Gemini ───────────────────────────────────────────
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -30,7 +54,9 @@ LUẬT BẮT BUỘC:
 3. Nếu KHÔNG có trong KB → nói thẳng "Không tìm thấy trong tài liệu hiện có".
 4. KHÔNG đoán mò kiến thức kỹ thuật — sai thì học viên học sai.
 5. Luôn kèm gợi ý "Xem thêm: [tên tài liệu]" nếu có tài liệu liên quan.
-6. Tone: Thân thiện, chính xác, ngắn gọn. Không dài dòng."""
+6. Với câu hỏi kỹ thuật sâu (softmax, attention, gradient...) LUÔN kèm: '🤖 Xem [TXX] để verify chi tiết kỹ thuật.'
+7. Response tối đa 900 ký tự. Nếu cần dài hơn, dùng bullet points ngắn gọn.
+8. Tone: Thân thiện, chính xác, ngắn gọn. Mỗi trả lời kết thúc bằng: '🤖 Tóm tắt tự động — xem nguyên văn để xác nhận.'"""
 
 SYNTHESIZE_SYSTEM = """Bạn là Knowledge Assistant của khoá VinAI Thực Chiến.
 Nhiệm vụ: Tổng hợp đoạn chat Discord và rút ra insights.
@@ -85,18 +111,23 @@ Hãy phân tích và trả về JSON với ĐÚNG schema sau (không thêm text 
             lines = raw.split("\n")
             raw = "\n".join(lines[1:-1])
         
-        return json.loads(raw)
+        result = json.loads(raw)
+        log_ai_call("SUMMARY", MODEL_NAME, prompt, has_citation=True, success=True)
+        return result
     
     except json.JSONDecodeError:
         # Try to extract JSON from response
         import re
         match = re.search(r'\{.*\}', response.text, re.DOTALL)
         if match:
-            return json.loads(match.group())
+            result = json.loads(match.group())
+            log_ai_call("SUMMARY", MODEL_NAME, prompt, has_citation=True, success=True)
+            return result
+        log_ai_call("SUMMARY", MODEL_NAME, prompt, has_citation=False, success=False)
         raise ValueError("Gemini trả về JSON không hợp lệ")
 
 
-def chat_with_kb(message: str, kb_context: str) -> dict:
+def chat_with_kb(message: str, kb_context: str, conversation_history: str = "") -> dict:
     """
     Chat endpoint: answer user question using KB context.
     Returns: {response, citations, found_in_kb, is_logistics}
@@ -106,9 +137,13 @@ def chat_with_kb(message: str, kb_context: str) -> dict:
         system_instruction=CHAT_SYSTEM,
     )
 
+    history_section = ""
+    if conversation_history:
+        history_section = f"\n\nLịch sử hội thoại gần đây (ngữ cảnh):\n{conversation_history}\n"
+
     prompt = f"""Knowledge Base hiện có:
 {kb_context}
-
+{history_section}
 Câu hỏi của học viên: {message}
 
 Trả lời theo JSON:
@@ -128,9 +163,13 @@ Trả lời theo JSON:
             lines = raw.split("\n")
             raw = "\n".join(lines[1:-1])
         
-        return json.loads(raw)
+        result = json.loads(raw)
+        has_cite = bool(result.get("citations"))
+        log_ai_call("RAG_QUERY", MODEL_NAME, prompt, has_citation=has_cite, success=True)
+        return result
     
     except Exception:
+        log_ai_call("RAG_QUERY", MODEL_NAME, prompt, has_citation=False, success=False)
         return {
             "response": response.text if 'response' in locals() else "Có lỗi xảy ra, vui lòng thử lại.",
             "citations": [],
@@ -173,7 +212,10 @@ Tổng hợp và trả về JSON:
             lines = raw.split("\n")
             raw = "\n".join(lines[1:-1])
         
-        return json.loads(raw)
+        result = json.loads(raw)
+        log_ai_call("SYNTHESIZE", MODEL_NAME, prompt, has_citation=False, success=True)
+        return result
     
     except Exception:
+        log_ai_call("SYNTHESIZE", MODEL_NAME, prompt, has_citation=False, success=False)
         return {"error": "Không thể tổng hợp chat. Vui lòng thử lại."}

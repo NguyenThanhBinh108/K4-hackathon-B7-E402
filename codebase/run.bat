@@ -1,24 +1,41 @@
 @echo off
+title VinAI Knowledge Assistant v2.0
+color 0A
+echo.
+echo  ╔══════════════════════════════════════════════════════╗
+echo  ║    VinAI Knowledge Assistant v2.0 - B7-E402         ║
+echo  ╚══════════════════════════════════════════════════════╝
+echo.
+
 cd /d "%~dp0backend"
 
-echo [1/4] Kiem tra Python...
-python --version >nul 2>&1 || (echo LOI: Python chua cai. Vao python.org & pause & exit /b 1)
+REM Check .venv exists
+if not exist ".venv\Scripts\python.exe" (
+    echo [SETUP] Tao moi truong ao .venv...
+    python -m venv .venv
+    if errorlevel 1 (
+        echo [ERROR] Khong the tao .venv. Kiem tra Python da cai chua.
+        pause
+        exit /b 1
+    )
+    echo [SETUP] Cai packages...
+    .venv\Scripts\pip install -r requirements.txt --quiet
+    echo [SETUP] Hoan thanh!
+)
 
-echo [2/4] Tao .venv neu chua co...
-if not exist ".venv\" python -m venv .venv
+REM Check .env
+if not exist ".env" (
+    echo [WARN] Chua co file .env - copy tu .env.example...
+    copy .env.example .env
+    echo [WARN] Mo file .env va dien GEMINI_API_KEY vao!
+    notepad .env
+    timeout /t 3
+)
 
-echo [3/4] Kich hoat .venv va cai packages...
-call .venv\Scripts\activate.bat
-pip install -r requirements.txt -q --disable-pip-version-check
-
-echo [4/4] Khoi dong server...
+echo [INFO] Khoi dong server tai http://localhost:8000
+echo [INFO] Nhan Ctrl+C de dung server
 echo.
-echo  =========================================
-echo   App: http://localhost:8000
-echo   API: http://localhost:8000/docs
-echo   Dung: Ctrl+C
-echo  =========================================
-echo.
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+.venv\Scripts\python.exe -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 pause

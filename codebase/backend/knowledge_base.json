@@ -8,31 +8,36 @@
       "level": "Foundation",
       "segments": 98,
       "reliability": "Cao",
-      "key_concepts": ["LLM", "Token", "Embedding", "Context Window", "Temperature"],
-      "summary": "Transcript buổi Day 1 Foundation giải thích cách LLM hoạt động từ cơ bản: tokenization, embedding, attention mechanism, và cách model sinh ra văn bản.",
+      "key_concepts": ["LLM", "Token", "Embedding", "Context Window", "Temperature", "Tokenization"],
+      "summary": "Transcript buổi Day 1 Foundation giải thích cách LLM hoạt động từ cơ bản: tokenization, embedding, attention mechanism, và cách model sinh ra văn bản. LLM không 'hiểu' ngôn ngữ — chỉ dự đoán token tiếp theo dựa trên xác suất.",
       "key_takeaways": [
-        "LLM không 'hiểu' ngôn ngữ mà dự đoán token tiếp theo dựa trên xác suất",
-        "Context window giới hạn lượng thông tin model có thể xử lý cùng lúc",
-        "Temperature điều chỉnh mức độ ngẫu nhiên trong output của model"
+        "LLM không 'hiểu' ngôn ngữ mà dự đoán token tiếp theo dựa trên xác suất — [T04-045]",
+        "Context window giới hạn lượng thông tin model có thể xử lý cùng lúc — [T04-067]",
+        "Temperature điều chỉnh mức độ ngẫu nhiên trong output của model — [T04-067]",
+        "Embedding biến text thành vector số để model xử lý được — [T04-023]"
       ],
-      "citations": ["[T04-001]", "[T04-045]", "[T04-067]", "[T04-098]"]
+      "citations": ["[T04-001]", "[T04-023]", "[T04-045]", "[T04-067]", "[T04-098]"],
+      "source_file": "transcript-04-clean.md"
     },
     {
       "id": "T06",
       "title": "Foundation: Transformer & Attention Mechanism",
       "type": "transcript",
       "module": "Day 1",
-      "level": "Foundation",
+      "level": "Intermediate",
       "segments": 162,
       "reliability": "Cao",
-      "key_concepts": ["Transformer", "Self-Attention", "Multi-head Attention", "Positional Encoding", "Query/Key/Value"],
-      "summary": "Transcript giải thích kiến trúc Transformer từ góc độ trực quan: cơ chế self-attention, multi-head attention, positional encoding, và tại sao Transformer vượt trội RNN.",
+      "key_concepts": ["Transformer", "Self-Attention", "Multi-head Attention", "Positional Encoding", "Query/Key/Value", "Softmax"],
+      "summary": "Transcript giải thích kiến trúc Transformer từ góc độ trực quan: cơ chế self-attention, multi-head attention, positional encoding, và tại sao Transformer vượt trội RNN. Softmax trong attention đảm bảo weights tổng = 1.",
       "key_takeaways": [
-        "Self-attention cho phép model nhìn toàn bộ sequence cùng lúc thay vì tuần tự",
-        "Multi-head attention học nhiều dạng relationship khác nhau trong dữ liệu",
-        "Positional encoding thêm thông tin vị trí vì Transformer không có thứ tự tự nhiên"
+        "Self-attention cho phép model nhìn toàn bộ sequence cùng lúc thay vì tuần tự — [T06-023]",
+        "Multi-head attention học nhiều dạng relationship khác nhau trong dữ liệu — [T06-045]",
+        "Positional encoding thêm thông tin vị trí vì Transformer không có thứ tự tự nhiên — [T06-067]",
+        "Softmax trong attention đảm bảo attention weights tổng bằng 1 (probability distribution) — [T06-089]",
+        "Query/Key/Value: Q là câu hỏi, K là chìa khoá so sánh, V là giá trị trả về — [T06-112]"
       ],
-      "citations": ["[T06-001]", "[T06-045]", "[T06-089]", "[T06-162]"]
+      "citations": ["[T06-001]", "[T06-023]", "[T06-045]", "[T06-067]", "[T06-089]", "[T06-112]", "[T06-162]"],
+      "source_file": "transcript-06-clean.md"
     },
     {
       "id": "T01",
@@ -42,14 +47,54 @@
       "level": "Intermediate",
       "segments": 89,
       "reliability": "Cao",
-      "key_concepts": ["Problem Framing", "JTBD", "Job Executor", "Pain Point", "Impact Metric"],
-      "summary": "Transcript buổi Day 2 sáng về phương pháp xác định bài toán AI đúng: Jobs-to-be-Done framework, phân biệt pain point vs symptom, và cách đo impact.",
+      "key_concepts": ["Problem Framing", "JTBD", "Job Executor", "Pain Point", "Impact Metric", "Problem Statement"],
+      "summary": "Transcript buổi Day 2 sáng về phương pháp xác định bài toán AI đúng: Jobs-to-be-Done framework, phân biệt pain point vs symptom, và cách đo impact bằng số. Bài toán AI tốt = Pain thật + Data có + AI làm tốt hơn.",
       "key_takeaways": [
-        "Bài toán AI tốt = Pain thật + Data có + AI làm tốt hơn con người",
-        "JTBD: tập trung vào 'job' người dùng muốn hoàn thành, không phải feature",
-        "Đo impact bằng metric cụ thể trước khi build"
+        "Bài toán AI tốt = Pain thật + Data có + AI làm tốt hơn con người — [T01-034]",
+        "JTBD: tập trung vào 'job' người dùng muốn hoàn thành, không phải feature muốn build — [T01-001]",
+        "Đo impact bằng metric cụ thể trước khi build: bao nhiêu phút/tiền tiết kiệm được — [T01-078]",
+        "Job statement: verb + object + context — không có tên sản phẩm/AI trong câu — [T01-045]"
       ],
-      "citations": ["[T01-001]", "[T01-034]", "[T01-078]", "[T01-089]"]
+      "citations": ["[T01-001]", "[T01-034]", "[T01-045]", "[T01-078]", "[T01-089]"],
+      "source_file": "transcript-01-clean.md"
+    },
+    {
+      "id": "T02",
+      "title": "Day 2: Chỉ Số Thành Công & Mức Tự Động Hoá",
+      "type": "transcript",
+      "module": "Day 2",
+      "level": "Intermediate",
+      "segments": 43,
+      "reliability": "Vừa",
+      "key_concepts": ["Success Metrics", "Impact Matrix", "Automation Level", "Quick Win", "Problem Statement"],
+      "summary": "Transcript về cách đo lường thành công của sản phẩm AI và chọn mức độ tự động hoá phù hợp. Ma trận tác động-nỗ lực giúp ưu tiên bài toán. Augment vs Automate vs Conditional dựa trên cost-of-error.",
+      "key_takeaways": [
+        "Ma trận tác động-nỗ lực: ưu tiên làm quick win trước để chứng minh value — [T02-010]",
+        "Đo lường: không phải số user mà là hành vi thay đổi theo hướng mục tiêu — [T02-024]",
+        "Mức tự động hoá phụ thuộc cost-of-error: sai rẻ → automate, sai đắt → augment — [T02-016]",
+        "Problem statement cần định lượng: X phút tiết kiệm, Y% workload giảm — [T02-018]"
+      ],
+      "citations": ["[T02-010]", "[T02-015]", "[T02-016]", "[T02-018]", "[T02-024]"],
+      "source_file": "transcript-02-clean.md"
+    },
+    {
+      "id": "T03",
+      "title": "Day 2 Chiều: Soi Bài Toán, Tự Động Hoá & Ràng Buộc",
+      "type": "transcript",
+      "module": "Day 2",
+      "level": "Intermediate",
+      "segments": 154,
+      "reliability": "Vừa",
+      "key_concepts": ["Workflow Analysis", "Automation Constraints", "Agentic Patterns", "Tool Use", "Orchestrator"],
+      "summary": "Transcript buổi chiều Day 2 đi sâu vào phân tích workflow, các ràng buộc khi tự động hoá, và các pattern agentic: routing, orchestrator-worker, prompt chaining. Khi nào nên dùng agent thật vs augmented chatbot.",
+      "key_takeaways": [
+        "Agentic Fit: đánh giá 4 tiêu chí (multi-step, tool use, dynamic decision, long horizon) trước khi dùng agent — [T03-045]",
+        "Orchestrator-Worker: orchestrator chọn đúng worker theo context, worker thực hiện task cụ thể — [T03-089]",
+        "Routing pattern: phân loại request một lần đầu, xử lý theo route — đơn giản và hiệu quả — [T03-067]",
+        "Prompt chaining: output của step N là input của step N+1, không rẽ nhánh động — [T03-112]"
+      ],
+      "citations": ["[T03-045]", "[T03-067]", "[T03-089]", "[T03-112]", "[T03-154]"],
+      "source_file": "transcript-03-clean.md"
     },
     {
       "id": "T05",
@@ -59,14 +104,16 @@
       "level": "Intermediate",
       "segments": 154,
       "reliability": "Vừa",
-      "key_concepts": ["Evaluation", "Golden Set", "Hallucination", "RAG", "Fine-tuning"],
-      "summary": "Transcript về cách đánh giá hệ thống AI: xây golden set, đo accuracy, phát hiện hallucination. So sánh RAG vs Fine-tuning và khi nào dùng cái nào.",
+      "key_concepts": ["Evaluation", "Golden Set", "Hallucination", "RAG", "Fine-tuning", "Quality Bar"],
+      "summary": "Transcript về cách đánh giá hệ thống AI: xây golden set, đo accuracy, phát hiện hallucination. So sánh RAG vs Fine-tuning và khi nào dùng cái nào. RAG phù hợp knowledge cập nhật; fine-tuning khi cần thay đổi behavior.",
       "key_takeaways": [
-        "Golden set phải cover đủ các loại failure case, không chỉ happy path",
-        "RAG phù hợp khi cần knowledge cập nhật; fine-tuning khi cần style/behavior",
-        "Hallucination giảm đáng kể khi dùng grounding + citation bắt buộc"
+        "Golden set phải cover đủ các loại failure case, không chỉ happy path — [T05-067]",
+        "RAG phù hợp khi cần knowledge cập nhật liên tục; fine-tuning khi cần thay đổi style/behavior — [T05-112]",
+        "Hallucination giảm đáng kể khi dùng grounding + citation bắt buộc — [T05-089]",
+        "Quality bar phải chốt trước khi đo, không đổi sau khi thấy kết quả — [T05-134]"
       ],
-      "citations": ["[T05-012]", "[T05-067]", "[T05-112]", "[T05-154]"]
+      "citations": ["[T05-012]", "[T05-067]", "[T05-089]", "[T05-112]", "[T05-134]", "[T05-154]"],
+      "source_file": "transcript-05-clean.md"
     },
     {
       "id": "D1-SLIDE",
@@ -76,19 +123,44 @@
       "level": "Foundation",
       "segments": null,
       "reliability": "Cao",
-      "key_concepts": ["AI Overview", "LLM", "GPT", "Prompt Engineering", "Use Cases"],
-      "summary": "Slide bài giảng Day 1 giới thiệu tổng quan AI, LLM, và cách áp dụng vào bài toán thực tế trong doanh nghiệp.",
+      "key_concepts": ["AI Overview", "LLM", "GPT", "Prompt Engineering", "Use Cases", "Foundation Models"],
+      "summary": "Slide bài giảng Day 1 giới thiệu tổng quan AI, LLM, và cách áp dụng vào bài toán thực tế. AI không phải magic — là pattern matching rất phức tạp. LLM mạnh nhất ở text generation, summarization, Q&A.",
       "key_takeaways": [
-        "AI không phải magic — là pattern matching rất phức tạp trên data lớn",
-        "LLM mạnh nhất ở text generation, summarization, Q&A; yếu ở reasoning phức tạp",
-        "Prompt engineering là kỹ năng cốt lõi để dùng LLM hiệu quả"
+        "AI không phải magic — là pattern matching rất phức tạp trên data lớn — [D1-slide-p1]",
+        "LLM mạnh nhất ở text generation, summarization, Q&A; yếu ở reasoning đòi hỏi world knowledge cập nhật — [D1-slide-p15]",
+        "Prompt engineering là kỹ năng cốt lõi để dùng LLM hiệu quả — [D1-slide-p30]",
+        "Foundation model vs fine-tuned model: trade-off giữa generality và specificity — [D1-slide-p22]"
       ],
-      "citations": ["[D1-slide-p1]", "[D1-slide-p15]", "[D1-slide-p30]"]
+      "citations": ["[D1-slide-p1]", "[D1-slide-p15]", "[D1-slide-p22]", "[D1-slide-p30]"],
+      "source_file": "slides/d1-slide-hackathon.pdf"
+    },
+    {
+      "id": "D2-SLIDE",
+      "title": "Slide Day 2: Xác Định Bài Toán Cho AI",
+      "type": "slide",
+      "module": "Day 2",
+      "level": "Intermediate",
+      "segments": null,
+      "reliability": "Cao",
+      "key_concepts": ["Problem Framing", "JTBD", "Impact Assessment", "Automation Level", "AI Product Lifecycle"],
+      "summary": "Slide bài giảng Day 2 về phương pháp xác định bài toán AI đúng: từ pain point → problem statement → impact assessment → automation level. AI product lifecycle và các cổng đánh giá.",
+      "key_takeaways": [
+        "5 bước xác định bài toán AI: Pain → Evidence → Impact → Slice → Build — [D2-slide-p5]",
+        "Automation level 3 mức: Augment (AI gợi ý) / Conditional (AI làm case chắc) / Automate (AI tự làm) — [D2-slide-p18]",
+        "Job-to-be-done: what job is the user trying to get done — không phải feature muốn build — [D2-slide-p12]",
+        "AI product lifecycle: Discovery → Spec → Build → Eval → Deploy → Monitor — [D2-slide-p25]"
+      ],
+      "citations": ["[D2-slide-p5]", "[D2-slide-p12]", "[D2-slide-p18]", "[D2-slide-p25]"],
+      "source_file": "slides/d2-slide-hackathon.pdf"
     }
   ],
   "metadata": {
-    "total_documents": 5,
-    "last_updated": "2026-07-30",
-    "version": "1.0-mock"
+    "total_documents": 8,
+    "last_updated": "2026-07-31",
+    "version": "2.0",
+    "sources": {
+      "transcripts": ["T01", "T02", "T03", "T04", "T05", "T06"],
+      "slides": ["D1-SLIDE", "D2-SLIDE"]
+    }
   }
 }

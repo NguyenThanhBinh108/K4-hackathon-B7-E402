@@ -4,318 +4,335 @@
 
 ---
 
-## 1. Problem Statement & Evidence
+---
 
-### Pain Point (Ai — Làm gì — Vướng đâu — Hậu quả)
+*Feature Spec — Knowledge Synthesis & Document Intelligence · Hải Đăng · Nhóm B7-E402 · VinAI K4 Hackath*
 
-Trong khoá VinAI Thực Chiến, kênh `#tài-nguyên` trên Discord là nơi mentor và Lab Coach chia sẻ tài liệu học tập:
-- **Slide bài giảng** (PDF, Google Slides)
-- **Video record** buổi học, Office Hour (YouTube, Google Drive)
-- **Bài viết, paper, blog** kỹ thuật
-- **GitHub repo**, notebook, code mẫu
 
-| Ai | Đang làm gì | Vướng đâu | Hậu quả |
-|---|---|---|---|
-| Học viên VinAI | Tìm lại tài liệu cụ thể trong #tài-nguyên | Phải cuộn lịch sử chat dài, link bị chôn vùi, không biết tài liệu đó dạy gì | Tốn 10–15 phút chỉ để tìm đúng slide |
-| Học viên VinAI | Xem nhanh một tài liệu dài (slide 30 trang, video 90 phút) | Không có tóm tắt, phải xem toàn bộ để biết có liên quan không | Mất 30–60 phút chỉ để kết luận "không phải cái cần tìm" |
-| Lab Coach / TA | Biết học viên đang gặp khó khăn với kiến thức nào | Không có tổng hợp tự động từ chat history | Phải đọc hàng trăm tin nhắn để nhận ra pattern câu hỏi |
+# Feature Spec v2 — Discord Knowledge Assistant (Production-Lite)
 
-### Evidence (từ data pack)
-
-Từ `chatlog/chat_history_anonymized_for_hackathon.csv` (2.522 dòng, 585 hội thoại):
-- **46.2% tutor responses** không có citations — trả lời không grounding vào tài liệu
-- Fields `misconceptions` và `follow_ups` chưa từng được dùng (0/1.261 turns) — bỏ phí signal học tập quan trọng
-- Chỉ ~2.8% tin nhắn có rating (up/down) — feedback loop rất yếu
-- `asked_check_question` chỉ True 3/2515 lần — tutor gần như không chủ động kiểm tra hiểu bài
+> **Cập nhật từ:** Production Plan (VinAI Resource Assistant) + Feature Spec (Knowledge Synthesis)
+> **Bổ sung:** Continuous auto-ingestion, RAG Q&A đầy đủ (không chỉ summary), Router, Semantic Cache, Guardrail, Multi-provider Key Pool
+> **Căn cứ thiết kế:** Agentic Fit Framework & Anthropic Agent Patterns (tài liệu khoá AICB Ngày 3-5)
+> **Thời gian còn lại khi viết:** 6 giờ
 
 ---
 
-## 2. Feature Scope
+## 0. Quyết định kiến trúc nền tảng — vì sao KHÔNG dùng Agent/Multi-agent/MCP
 
-### Lát cắt MỘT CÂU
+Đây là phần quan trọng nhất để trình bày với ban giám khảo — cho thấy lựa chọn kiến trúc có căn cứ, không chạy theo trend.
 
-> **Khi học viên gửi link tài liệu (slide/PDF) vào Discord, AI tự động trích xuất nội dung, tạo tóm tắt có cấu trúc kèm vị trí định vị trong syllabus, giúp học viên quyết định trong 30 giây có nên đọc đầy đủ không.**
+### Áp dụng Agentic Fit Scoring Matrix vào chính hệ thống này
 
-### Non-goals (KHÔNG build trong hackathon này)
+| Tiêu chí            | Điểm (1-5) | Giải thích                                                                                                                                                                       |
+| --------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Multi-step reasoning  | 2            | Ingestion là chuỗi bước cố định (fetch→chunk→embed→summarize); Q&A là 1-2 bước (route→retrieve→generate), không cần lập kế hoạch động nhiều tầng           |
+| Tool interaction      | 3            | Có gọi nhiều tool (Apps Script, Drive, GitHub, Firecrawl, embedding, LLM) nhưng**biết trước tool nào dùng khi nào** — không cần LLM tự chọn tool giữa chừng |
+| Dynamic decision      | 2            | Router quyết định 1 lần đầu request, không phải vòng lặp action→observe→adapt liên tục như agent thật                                                              |
+| Long horizon          | 1            | Mỗi request xử lý độc lập; conversational memory chỉ để tiện hỏi liên tiếp, không phải theo đuổi mục tiêu dài hạn                                             |
+| **Tổng: 8/20** |              | Rơi vào vùng**"augmented chatbot"** (6-10 theo thang trong slide), không đạt ngưỡng "agent đáng thử" (11+)                                                        |
 
-1. Không xử lý video (chỉ text/PDF trong prototype)
-2. Không tích hợp thật vào Discord bot (dùng giao diện web demo)
-3. Không build hệ thống search toàn bộ knowledge base
-4. Không hỗ trợ real-time streaming từ live Discord
-5. Không quản lý permission hay role Discord
+### Kết luận kiến trúc (theo thang Anthropic: Augmented LLM → Prompt Chaining → Routing → Orchestrator-Worker → Agent)
+
+Hệ thống này dùng **3 pattern giữa**, dừng lại trước khi tới "Agent" thật:
+
+| Pattern                        | Áp dụng ở đâu trong hệ thống                                                                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Augmented LLM**        | Building block cơ bản: mỗi lệnh gọi LLM đều có tool (retrieval) + structured output, không phải LLM trần                                                                                           |
+| **Prompt Chaining**      | Ingestion pipeline: fetch → chunk → embed → summarize là chuỗi cố định, mỗi bước output feed vào bước sau, không rẽ nhánh động                                                             |
+| **Routing**              | Router phân loại request → METADATA_LOOKUP / RAG_QUERY / OUT_OF_SCOPE / AMBIGUOUS / INGESTION — đây là trái tim của hệ thống                                                                       |
+| **Orchestrator-Worker**  | Khi ingest, orchestrator chọn đúng "worker" fetcher theo loại URL (Slides/Drive/GitHub/generic), chạy song song nếu nhiều URL trong 1 message                                                          |
+| **Agent (KHÔNG dùng)** | Không cần vòng lặp tự trị nhiều bước, không cần framework (LangGraph/CrewAI/AutoGen) — thêm vào sẽ tăng token, tăng latency, tăng điểm fail mà không giải quyết bài toán nào thêm |
+
+**Trade-off nói thẳng với giám khảo nếu được hỏi:** "Tụi em cân nhắc multi-agent và MCP, nhưng áp dụng chính framework Agentic Fit đã học để đánh giá — bài toán này là augmented chatbot có routing, dùng agent framework sẽ over-engineering, tốn token vô ích." Đây là câu trả lời senior, không phải né tránh.
 
 ---
 
-## 3. Feature Components
+## 1. Vấn đề & Bằng chứng (giữ nguyên từ Feature Spec gốc, không đổi)
 
-### 3.1 Chat Knowledge Synthesis
+Xem "Feature Spec — Knowledge Synthesis & Document Intelligence" gốc, mục 1. Giữ nguyên toàn bộ evidence (46.2% response không citation, misconceptions/follow_ups chưa dùng, rating rate ~2.8%, asked_check_question gần như 0).
 
-**Input:** Đoạn chat Discord (text)
+### Lát cắt MỘT CÂU (cập nhật, mở rộng phạm vi so với bản gốc)
+
+> **Khi mentor/BTC đăng tài liệu vào kênh Discord, hệ thống tự động trích xuất, tóm tắt, và nạp vào Knowledge Base liên tục (không cần trigger thủ công); học viên có thể hỏi đáp bất kỳ lúc nào — kể cả để ôn tập nhiều câu liên tiếp — và nhận câu trả lời có trích dẫn cụ thể, được route đúng loại truy vấn, cache thông minh để tiết kiệm chi phí, và guardrail 2 chiều đảm bảo không bịa/không lệch phạm vi.**
+
+### Non-goals (vẫn giữ, bổ sung 2 mục)
+
+1. Không xử lý video/audio (transcript thủ công nếu cần demo)
+2. Không multi-agent framework, không MCP (đã giải thích ở mục 0)
+3. Không web search ngoài phạm vi tài liệu khoá học (không dùng Tavily — xem mục 9)
+4. Không quản lý permission/role Discord phức tạp
+5. Không real-time multi-user sync trên HTML clone (single-session demo là đủ)
+
+---
+
+## 2. Feature Components (đầy đủ)
+
+### 2.1 Auto-Ingestion (event-driven, liên tục)
+
+Bot lắng nghe kênh tài nguyên, mỗi khi có URL mới:
+
+1. Detect loại URL (Google Slides / Drive PDF / GitHub / generic web)
+2. Check dedup (đã ingest chưa) qua bảng tracking
+3. Đẩy vào queue, xử lý nền (không block gateway)
+4. Fetch nội dung bằng đúng "worker" tương ứng
+5. Parse metadata từ chính message Discord (title, presenter, session, passcode...) bằng regex trước, LLM fallback nếu message không theo format chuẩn
+6. Sinh **quick_summary** (1 câu + 3-5 bullet) lưu vào metadata — dùng trả lời nhanh
+7. Chunk (500 ký tự, overlap 50) → batch embed → lưu ChromaDB
+8. Reply lại đúng message: `✅ Đã phân tích: [tên tài liệu] — Chủ đề: ... — Đã thêm vào Knowledge Base`
+
+### 2.2 RAG Q&A đầy đủ (không chỉ summary — đây là phần mở rộng lớn nhất so với bản gốc)
+
+Học viên có thể hỏi bất kỳ lúc nào trong kênh (không cần link):
+
+- Câu hỏi lookup ("Slide WS2 ở đâu") → trả lời từ **metadata trực tiếp**, không cần vector search
+- Câu hỏi nội dung ("Pain point trong WS2 là gì") → **RAG thật**: retrieve top-k chunks đúng resource → generate có citation
+- Câu hỏi ôn tập đa lượt ("còn phần MVP Canvas thì sao?" — hỏi tiếp không nhắc lại context) → dùng **conversational memory ngắn hạn** theo `(channel_id, user_id)`, 3-5 turn gần nhất
+- Câu hỏi tổng hợp nhiều tài liệu ("tôi cần ôn gì cho buổi thi") → multi-resource retrieval + tổng hợp, kèm cảnh báo "phân loại tự động — verify lại"
+
+### 2.3 Router (rule-based trước, LLM chỉ khi cần)
+
+```
+has_url                          → INGESTION
+matches out-of-scope keywords    → OUT_OF_SCOPE (trả lời cứng, không qua LLM)
+matches lookup pattern           → METADATA_LOOKUP (query trực tiếp, không qua LLM)
+câu hỏi quá ngắn/mơ hồ (<3 từ)   → AMBIGUOUS (hỏi lại 1 câu rõ ràng)
+còn lại                          → RAG_QUERY (cần LLM + retrieval)
+```
+
+Mục tiêu: giảm >60% lệnh gọi LLM so với việc route bằng LLM cho mọi câu.
+
+### 2.4 Semantic Cache
+
+Cache theo embedding câu hỏi, threshold cosine ~0.90-0.92 (cần calibrate 15 phút trước demo). Cache **theo resource_id** — khi resource được re-ingest, invalidate toàn bộ cache liên quan resource đó. Log hit-rate để trình bày con số cụ thể với giám khảo.
+
+### 2.5 Guardrail 2 chiều
+
+**Input:**
+
+- Rule-based out-of-scope filter (deadline, điểm số, thông tin học viên khác) — chặn trước khi tốn token
+- Prompt injection filter (pattern "ignore previous instructions", "system:"...)
+- Rate limit theo user (chống spam làm cạn key pool)
+
 **Output:**
-- Danh sách **chủ đề kiến thức** được đề cập
-- **Câu hỏi phổ biến** và câu trả lời tương ứng
-- **Điểm học viên đang bị stuck** (từ pattern câu hỏi lặp)
-- Gợi ý tài liệu liên quan từ Knowledge Base
 
-```
-Vi du output:
----
-Tong hop chat #ai-questions (30/07/2026)
-Chu de: Prompt Engineering (8 cau hoi), RAG vs Fine-tuning (5 cau hoi)
-Cau hoi pho bien nhat: "Khi nao dung RAG, khi nao fine-tune?" — 4 hoc vien hoi
-Hoc vien dang stuck: Khai niem embedding distance trong vector search
-Tai lieu lien quan: [T04-045] Buoi Foundation — cach LLM hoat dong
----
-```
+- Bắt buộc có citation `[resource_id-chunk_N]` nếu route là RAG_QUERY, nếu không có → fallback "không tìm thấy đủ căn cứ"
+- Cap độ dài 2000 ký tự (giới hạn Discord)
+- Luôn kèm dòng "🤖 Tóm tắt tự động — xem nguồn gốc để xác nhận" (HAX G2)
 
-### 3.2 Document Summarization
+### 2.6 Multi-Provider Key Pool (Gemini + Groq)
 
-**Input:** Link PDF / slide (URL hoặc file upload)
-**Output có cấu trúc:**
-- **Tiêu đề & chủ đề chính** (1 câu)
-- **Key takeaways** (3–5 bullet points, mỗi cái 1–2 câu)
-- **Khái niệm quan trọng** được giới thiệu
-- **Prerequisites** — cần biết gì trước khi đọc tài liệu này
-- **Liên kết với syllabus** — tài liệu này thuộc buổi/module nào
+Phân công theo tác vụ, không round-robin ngây thơ:
 
-### 3.3 Knowledge Extraction
+| Tác vụ                                 | Provider chính             | Fallback                                           | Lý do                                                                               |
+| ---------------------------------------- | --------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Embedding                                | Gemini text-embedding-004   | (không có fallback — Groq không có embedding) | Bắt buộc dùng Gemini, cần pool 2-3 key riêng                                    |
+| Router LLM fallback + Guardrail classify | Groq (llama-3.1-8b-instant) | Gemini Flash                                       | Cần nhanh, rẻ, chất lượng thấp vẫn đủ dùng                                 |
+| Summarization (ingest, không real-time) | Gemini Flash                | Groq (llama-3.3-70b-versatile)                     | Không gấp, ưu tiên chất lượng tiếng Việt                                    |
+| RAG Answer generation (real-time)        | Gemini Flash                | Groq (llama-3.3-70b-versatile)                     | Latency-sensitive, cần fallback provider khác hẳn để né rate-limit toàn phần |
 
-Từ tài liệu đã được đọc, AI tạo ra:
-- **Knowledge map** dạng outline có phân cấp
-- **Trích dẫn có định vị** (trang N / slide N / timestamp)
-- **Câu hỏi ôn tập** tự động từ nội dung
-- **Liên kết chéo** với các tài liệu khác trong hệ thống
+Key pool có health-check + cooldown + exponential backoff + jitter, không chỉ round-robin (chi tiết code trong Implementation Plan).
 
-### 3.4 Syllabus Position Mapping
+### 2.7 Content Fetcher (mở rộng — thêm Firecrawl)
 
-AI phân loại tài liệu vào:
-- **Buổi học** (Day 1 Foundation / Day 2 Bài toán / ...)
-- **Chủ đề** (LLM / Prompt Engineering / RAG / Evaluation / ...)
-- **Cấp độ** (Foundation / Intermediate / Advanced)
-- **Loại tài liệu** (Slide / Transcript / Paper / Code / Blog)
+| Loại URL                           | Cách fetch                                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Google Slides                       | Google Apps Script Web App (đã có sẵn kế hoạch, execute as Me)                                                                 |
+| Google Drive PDF                    | Download trực tiếp (nếu public) → PyMuPDF                                                                                        |
+| GitHub repo/file                    | GitHub REST API                                                                                                                      |
+| Generic web (blog, docs site khác) | **Firecrawl API** (free tier) — fallback khi không match 3 loại trên, xử lý JS-rendered page tốt hơn tự viết scraper |
+
+### 2.8 Discord Test Channel (thật, để test đúng thực tế)
+
+1 kênh với ~15-20 tin nhắn đa dạng tình huống (chi tiết danh sách trong Implementation Plan mục 6) — dùng làm cả môi trường test lẫn kịch bản demo trực tiếp.
+
+### 2.9 HTML Discord-Clone (demo UI)
+
+2 tab: **Chat** (giao diện giống Discord dark theme, gọi thẳng `/api/chat`) và **Resources** (grid card tài nguyên, filter theo loại, gọi `/api/resources`). Không cần real-time đa người dùng — single-session là đủ cho demo.
 
 ---
 
-## 4. System Architecture
+## 3. Kiến trúc hệ thống tổng thể
 
 ```
-Discord #tai-nguyen
-(Link PDF, Slide, Video, GitHub...)
-         | User gui link / cau hoi
-         v
-Document Ingestion
-+-- PDF Parser (PyMuPDF)
-+-- Slide Parser (python-pptx)
-+-- Web Scraper (URL to text)
-         | Raw text chunks
-         v
-AI Processing Layer (Gemini Flash)
-(1) Chunking + Embedding
-(2) Summary Generation
-(3) Keyword + Topic Extraction
-(4) Syllabus Position Classification
-(5) Cross-reference voi Knowledge Base
-         | Structured output
-         v
-Knowledge Base
-(Vector store: Chroma / JSON file cho prototype)
-         |
-    +----+----+
-    v         v
-Discord Bot  Web Demo Interface
-Response     (Discord-like dark UI)
-```
-
----
-
-## 5. Interaction Flows
-
-### Happy Path — Tìm tài liệu theo câu hỏi
-
-```
-1. Hoc vien: "Slide buoi transformer o dau vay?"
-2. AI detect: truy van tai lieu → lookup flow
-3. Search knowledge base: "transformer slide"
-4. Tim thay: transcript-06-clean.md
-5. AI tra loi:
-   "[T06] Foundation: Transformer & Attention Mechanism
-   Vi tri: Buoi Foundation
-   Noi dung: Self-attention, Multi-head attention, Positional encoding
-   Xem transcript: [T06-001] den [T06-162]"
-```
-
-### Happy Path — Share link tài liệu mới
-
-```
-1. Mentor share link Google Slides
-2. AI detect: URL tai lieu moi → ingestion flow
-3. Download + extract text
-4. AI summarize + classify
-5. Tra loi:
-   "Da phan tich tai lieu: Prompt Engineering Best Practices
-   Chu de: Prompt Engineering, Chain-of-Thought
-   Thuoc: Module 2 — Ung dung LLM | Cap do: Intermediate
-   Takeaways:
-   - Zero-shot vs Few-shot
-   - Chain-of-Thought tang reasoning 30-40%
-   Da them vao Knowledge Base."
-```
-
-### Out-of-Scope Handling
-
-```
-1. Hoc vien: "Deadline nop bai la bao gio?"
-2. AI detect: logistics query → out of scope
-3. AI tra loi:
-   "Cau hoi ve deadline nam ngoai pham vi cua minh.
-   Vui long hoi Lab Coach hoac kiem tra #announcements.
-   Neu muon tim tai lieu hoc thuat, minh san sang ho tro!"
+╔══════════════════════════════════════════════════════════════╗
+║ DISCORD SERVER (test) — kênh #tài-nguyên                     ║
+╚═══════════════════════╦════════════════════════════════════════╝
+                        ║ discord.py (thin client)
+                        ▼
+╔══════════════════════════════════════════════════════════════╗
+║ GUARDRAIL INPUT (rule-based, không tốn token)                ║
+║  - out-of-scope filter · injection filter · rate limit       ║
+╚═══════════════════════╦════════════════════════════════════════╝
+                        ▼
+╔══════════════════════════════════════════════════════════════╗
+║ ROUTER (rule-based → LLM fallback qua Groq nếu cần)          ║
+║  INGESTION | METADATA_LOOKUP | RAG_QUERY | OUT_OF_SCOPE | AMBIGUOUS ║
+╚═══╦═══════════╦═══════════════╦═══════════════════════════════╝
+    ▼           ▼               ▼
+INGESTION   METADATA        RAG_QUERY
+ORCHESTRATOR LOOKUP         │
+    │       (query metadata  ├─ SEMANTIC CACHE (check trước)
+    │        Chroma trực     │     │ hit → trả ngay
+    │        tiếp, không     │     │ miss ▼
+    │        cần LLM)        ├─ Retrieve top-k chunks (Chroma)
+    ▼                        ├─ Conversational memory (RAM, per channel+user)
+WORKER theo loại URL         ├─ LLM GENERATE (Gemini→Groq fallback)
+(Slides/Drive/GitHub/        │     qua KEY POOL multi-provider
+ Firecrawl generic)          ▼
+    │                    GUARDRAIL OUTPUT
+    ▼                    (citation check · length cap · confidence tag)
+chunk → batch embed          │
+→ summarize → lưu Chroma     ▼
++ metadata                REPLY về Discord / HTML clone
+    │
+    ▼
+╔══════════════════════════════════════════════════════════════╗
+║ CHROMADB (persistent) + SQLite (dedup/job tracking)           ║
+╚══════════════════════════╦════════════════════════════════════╝
+                            ▼
+╔══════════════════════════════════════════════════════════════╗
+║ FASTAPI BACKEND (dùng chung cho Discord bot VÀ HTML clone)    ║
+║  /api/chat  /api/resources  /api/sync  /api/health /api/feedback ║
+╚══════════════════════════╦════════════════════════════════════╝
+                            ▼
+╔══════════════════════════════════════════════════════════════╗
+║ HTML DISCORD-CLONE (demo UI, single-session)                  ║
+╚══════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## 6. Risk Scenarios — 4 Failure Layers
+## 4. Interaction Flows
 
-### Layer 1: Ground Truth — AI Hallucination Risk
-
-| Scenario | Expected Behavior |
-|---|---|
-| Hỏi thông tin không có trong Knowledge Base | Trả lời "không tìm thấy", KHÔNG bịa |
-| Tài liệu chưa được ingestion | Thông báo "chưa có tài liệu này" |
-| Trích dẫn sai trang/slide | Luôn kèm mã đoạn [Txx-NNN] hoặc page number |
-
-### Layer 2: Ambiguity — Insufficient Input
-
-| Scenario | Expected Behavior |
-|---|---|
-| Hỏi "tài liệu về AI" (quá chung) | Hỏi lại: "Bạn muốn tìm về khía cạnh nào?" |
-| Link bị lỗi / không truy cập được | Báo lỗi, đề nghị upload file trực tiếp |
-| Câu hỏi vừa logistics vừa kiến thức | Tách rõ: trả lời kiến thức, chuyển logistics cho TA |
-
-### Layer 3: Out-of-Scope — Authorization Boundary
-
-| Scenario | Expected Behavior |
-|---|---|
-| Hỏi deadline, điểm số | "Ngoài phạm vi — hỏi Lab Coach" |
-| Yêu cầu giải bài tập thay học viên | Từ chối, gợi ý tài liệu liên quan |
-| Hỏi thông tin cá nhân học viên khác | Từ chối tuyệt đối |
-
-### Layer 4: Domain-Specific — Wrong Info = Wrong Learning
-
-| Scenario | Expected Behavior |
-|---|---|
-| Tóm tắt sai khái niệm kỹ thuật (attention, embedding...) | Luôn kèm nguồn trích dẫn để học viên tự verify |
-| Phân loại tài liệu sai module | Hiển thị confidence, cho phép user correct |
-| Syllabus mapping sai buổi học | Ghi rõ "phân loại tự động — chưa verified" |
-
----
-
-## 7. Design Principles (HAX/PAIR)
-
-| Principle | Implementation |
-|---|---|
-| **G1 — Set Expectations** | Onboarding message: CÓ THỂ (tóm tắt, tìm kiếm, tổng hợp) / KHÔNG (deadline, điểm số, giải bài) |
-| **G2 — Show Confidence Level** | Mọi summary kèm nguồn trích dẫn + "Tóm tắt tự động — xem nguyên văn để xác nhận" |
-| **G10 — Narrow Scope When Uncertain** | Không chắc → hỏi lại 1 câu rõ ràng, không đoán mò |
-| **G11 — Explain Reasoning** | "Chọn tài liệu này vì có đề cập đến [keyword] tại [vị trí cụ thể]" |
-| **G8 — Easy Dismissal** | Nút feedback "Không phải cái cần tìm" trên mỗi response |
-| **PAIR Explainability** | Mọi recommendation kèm lý do từ tài liệu gốc, không phải "AI cho rằng..." |
-
----
-
-## 8. Prototype Specification
-
-### Build Level: Sketch → Mock
-
-| Component | Real or Mock | Detail |
-|---|---|---|
-| AI call (summarization) | **Real** | Gemini Flash API với extracted PDF text |
-| Document parsing (PDF) | **Real** | PyMuPDF — extract plain text |
-| Knowledge Base | **Mock** | JSON file với 5–10 tài liệu mẫu từ data pack |
-| Discord integration | **Mock** | Web UI giả lập Discord dark interface |
-| Vector search | **Mock** | Keyword matching đơn giản |
-
-### Tech Stack
+### 4.1 Happy Path — Auto-ingest khi mentor share link
 
 ```
-Backend:
-- Python + FastAPI (hoac script CLI)
-- PyMuPDF — doc PDF, extract text
-- Google Gemini Flash API (free tier)
-- JSON file — mock Knowledge Base
+1. Mentor paste link Google Slides vào #tài-nguyên
+2. Bot react ⏳ ngay lập tức (feedback tức thì)
+3. [Nền] Router → INGESTION → Orchestrator chọn worker "gslides"
+4. Fetch qua Apps Script → parse metadata từ message text
+5. Quick summary (Gemini Flash) → chunk → batch embed → lưu Chroma
+6. Bot sửa reaction ⏳ → ✅, reply:
+   "Đã phân tích: Workshop 2 — Problem → MVP Canvas
+    Diễn giả: Anh Lê Anh Tiến | Chủ đề: Pain point, MVP Canvas
+    Đã thêm vào Knowledge Base."
+```
 
-Frontend:
-- HTML + CSS + Vanilla JS
-- Discord-like dark theme
-- File upload drag-and-drop
+### 4.2 Happy Path — Học viên ôn tập nhiều câu liên tiếp
+
+```
+1. HV: "Pain point trong WS2 là gì?"
+   → Router: RAG_QUERY → cache miss → retrieve chunks WS2 → generate
+   → "Pain point là... [WS2-slide-chunk-003]"
+2. HV: "còn MVP Canvas thì sao?" (không nhắc lại "WS2")
+   → Conversational memory nhớ context đang nói về WS2
+   → Router: RAG_QUERY → retrieve chunks liên quan MVP Canvas trong WS2
+   → trả lời có citation
+3. HV: "Khi nào dùng RAG khi nào fine-tune?" (câu hỏi tương tự đã hỏi trước bởi bạn khác)
+   → Semantic cache HIT (similarity 0.94) → trả lời ngay, không gọi LLM
+```
+
+### 4.3 Out-of-scope
+
+```
+HV: "Deadline nộp bài tuần này là bao giờ?"
+→ Guardrail input rule-based match ngay → KHÔNG qua router/LLM
+→ "Câu hỏi về deadline nằm ngoài phạm vi của mình.
+   Vui lòng hỏi Lab Coach hoặc check #announcements."
+```
+
+### 4.4 Rate-limit resilience (điểm ăn điểm production)
+
+```
+Gemini key A bị rate-limited khi generate câu trả lời
+→ KeyPool mark cooldown key A, thử key B (Gemini) → vẫn rate-limited
+→ Fallback sang provider khác hẳn: Groq llama-3.3-70b-versatile
+→ Trả lời vẫn ra, có thể note nhỏ nội bộ "generated via fallback provider"
+→ Không bao giờ để học viên thấy lỗi 429 trần trụi
 ```
 
 ---
 
-## 9. Automation Level
+## 5. Risk Scenarios — 4 Layers (mở rộng từ bản gốc, thêm layer 5)
 
-**Selected: Conditional Automation**
+### Layer 1 — Ground Truth / Hallucination
 
-> AI tự động summarize khi input rõ ràng và chất lượng cao. Khi không chắc (file lạ, text scan kém), báo người dùng và yêu cầu clarification.
+Giữ nguyên bản gốc + bổ sung: guardrail output enforce citation bằng code, không dựa LLM tự giác.
 
-**Rationale (cost-of-error):**
-- Summary sai kỹ thuật → học viên học sai kiến thức → **cost CAO**
-- Luôn kèm nguồn gốc trích dẫn để học viên tự verify
-- Syllabus classification chỉ là gợi ý — cần Lab Coach confirm để chính thức
+### Layer 2 — Ambiguity
 
----
+Giữ nguyên bản gốc.
 
-## 10. Demo Script (5 phút)
+### Layer 3 — Out-of-scope
 
-### Case 1 — Happy Path (2 phút)
-1. Upload `d1-slide-hackathon.pdf` (có sẵn trong data pack)
-2. AI trả về summary + key concepts + vị trí trong syllabus
-3. Follow-up: "Slide này có nói về attention mechanism không?"
-4. AI trả lời với trích dẫn cụ thể (trang/slide number)
+Giữ nguyên bản gốc + chuyển từ "LLM tự nhận diện" sang **rule-based filter chặn trước** (nhanh hơn, ổn định hơn).
 
-### Case 2 — Failure Handling (1.5 phút)
-1. Hỏi: "Deadline nộp bài tuần này là bao giờ?"
-2. Demo: AI từ chối đúng cách + chuyển hướng sang TA
-3. Gửi link không truy cập được
-4. Demo: AI báo lỗi rõ ràng + hướng dẫn upload trực tiếp
+### Layer 4 — Domain-specific
 
-### Case 3 — Evaluation Results (1.5 phút)
-- Bảng golden set: X/20 case pass
-- Quality bar đã chốt: >=75% pass + 100% citations correctness
-- Failure case đáng kể nhất + root cause analysis
+Giữ nguyên bản gốc.
+
+### Layer 5 — Hệ thống/Hạ tầng (MỚI — do mở rộng scope)
+
+| Scenario                                                               | Expected Behavior                                                                                                     |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Tất cả Gemini key rate-limited cùng lúc                            | Fallback sang Groq, không để lỗi lộ ra ngoài                                                                    |
+| Semantic cache trả lời sai vì threshold quá thấp (false-positive) | Calibrate threshold trước demo bằng vài cặp câu hỏi thật; log mọi cache hit để audit sau                   |
+| Resource bị re-ingest (update) nhưng cache cũ vẫn tồn tại        | Invalidate cache theo resource_id khi re-ingest                                                                       |
+| Discord bot mất kết nối gateway giữa demo                          | Ingestion queue vẫn giữ job (không mất dữ liệu), bot tự reconnect, dùng discord.py auto-reconnect mặc định |
+| 1 user spam nhiều câu hỏi liên tục                                | Rate limit theo user ở tầng guardrail input, tránh cạn key pool                                                   |
 
 ---
 
-## 11. Quality Bar & Success Metrics
+## 6. Design Principles (HAX/PAIR) — giữ nguyên bản gốc, không đổi
 
-| Metric | Target | Measurement Method |
-|---|---|---|
-| Summary accuracy | >=75% golden set pass | Manual scoring by 2 reviewers |
-| Source citation correctness | 100% citations when summarizing | Trace back to source document |
-| Scope refusal rate | 100% logistics queries rejected correctly | Test set of 5 logistics questions |
-| User satisfaction | >=3/5 testers say "helpful" | CP5 validation round |
-
-### Golden Set Composition (>=20 cases)
-
-| Category | Count | Source |
-|---|---|---|
-| Happy path — document found | 4 | From data pack transcripts |
-| Happy path — new doc ingestion | 3 | Simulated from slides |
-| Layer 1 failure — hallucination risk | 3 | Edge cases |
-| Layer 2 failure — ambiguous query | 3 | Real chat patterns |
-| Layer 3 failure — out of scope | 3 | Logistics questions |
-| Layer 4 failure — domain specifics | 4 | Technical misconceptions |
+Xem bản gốc mục 7 — G1, G2, G8, G10, G11, PAIR Explainability đều áp dụng nguyên vẹn cho cả 2 luồng ingest và Q&A.
 
 ---
 
-## 12. Post-Hackathon Roadmap
+## 7. Golden Set (mở rộng lên ~20 case thực tế, đủ đại diện, không cần 50)
 
-1. **Week 1:** Integrate real Discord bot (webhook + slash commands)
-2. **Week 2:** Real vector search (Chroma/Qdrant) replacing keyword matching
-3. **Week 3:** Video processing (Office Hour recordings → transcript → summary with timestamps)
-4. **Week 4:** Automated daily digest for TA — pending questions, trending topics
+| Nhóm                             | Số case | Nội dung                                                     |
+| --------------------------------- | -------- | ------------------------------------------------------------- |
+| A — Auto-ingest happy path       | 4        | Slides, PDF, GitHub, generic web (Firecrawl)                  |
+| B — Metadata lookup              | 3        | "Slide WS2 ở đâu", "Video WS1 passcode", "Ai dạy WS3"     |
+| C — RAG content Q&A              | 4        | Pain point, MVP Canvas, tóm tắt WS, so sánh 2 khái niệm  |
+| D — Ôn tập đa lượt (memory) | 3        | Hỏi tiếp không nhắc context, đổi chủ đề giữa chừng |
+| E — Out-of-scope                 | 2        | Deadline, điểm số                                          |
+| F — Ambiguous                    | 2        | "tài liệu về AI", câu hỏi 2 từ                          |
+| G — Hệ thống (Layer 5)         | 2        | Giả lập rate-limit, giả lập cache false-positive          |
 
 ---
 
-*Feature Spec — Knowledge Synthesis & Document Intelligence · Hải Đăng · Nhóm B7-E402 · VinAI K4 Hackathon*
+## 8. Demo Script (5 phút, cập nhật)
 
+1. **Live auto-ingest** (1 phút): paste link Slides thật trước mặt giám khảo → bot react ⏳ → reply ✅ có metadata + summary trong vài giây
+2. **Ôn tập đa lượt** (1.5 phút): hỏi 2-3 câu liên tiếp trong kênh, có 1 câu dùng lại ý đã hỏi trước (show cache hit qua log/console)
+3. **Out-of-scope + Ambiguous** (1 phút): demo từ chối đúng cách
+4. **Trình bày kiến trúc + lý do không dùng agent/MCP** (1 phút): dùng chính bảng Agentic Fit Scoring ở mục 0
+5. **Golden set results** (0.5 phút): bảng %pass + cache hit-rate + số lần fallback provider thành công
+
+---
+
+## 9. Quyết định KHÔNG dùng — nói rõ để tránh bị hỏi ngược
+
+| Công nghệ                                      | Quyết định       | Lý do                                                                                                                                                  |
+| ------------------------------------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Multi-agent framework (CrewAI/AutoGen/LangGraph) | Không dùng        | Agentic Fit score 8/20, không đạt ngưỡng cần agent thật                                                                                          |
+| MCP                                              | Không dùng        | Chỉ có 3-4 tool cố định, biết trước lúc code — MCP giải quyết bài toán chuẩn hoá nhiều tool động, không phải bài toán của mình |
+| Tavily (web search)                              | Không dùng        | Phá vỡ nguyên tắc "chỉ trả lời trong phạm vi Knowledge Base", tăng rủi ro hallucination ngoài phạm vi                                       |
+| RapidAPI                                         | Không dùng        | Không có nhu cầu API niên lẻ, 3 nguồn chính (Slides/Drive/GitHub) đã có API chính chủ free                                                  |
+| Firecrawl                                        | **Có dùng** | Fallback fetcher cho URL ngoài 3 loại chính, xử lý JS-rendered tốt hơn tự viết scraper, có free tier                                          |
+
+---
+
+## 10. Quality Bar & Metrics (mở rộng)
+
+| Metric                                | Target                                                             |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| Summary accuracy                      | ≥75% golden set pass                                              |
+| Citation correctness                  | 100% khi route RAG_QUERY                                           |
+| Scope refusal rate                    | 100% out-of-scope bị chặn đúng                                 |
+| Router accuracy                       | ≥90% route đúng nhóm (đo qua golden set)                      |
+| Cache hit-rate (sau vài chục query) | Ghi nhận số thực tế để trình bày, không cần target cứng |
+| Fallback provider success rate        | 100% (khi Gemini rate-limited, Groq phải cứu được)            |

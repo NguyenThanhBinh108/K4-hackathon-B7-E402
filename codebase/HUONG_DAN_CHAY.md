@@ -1,164 +1,139 @@
-# 🚀 Hướng Dẫn Chạy — VinAI Knowledge Assistant
+# 🚀 Hướng Dẫn Chạy — VinAI Knowledge Assistant v2.0
 
-> **Role 3 · Hải Đăng · Nhóm B7-E402** | Yêu cầu: Python 3.9+
-
----
-
-## Yêu Cầu
-
-```
-Python >= 3.9   →  python --version
-```
-> Chưa có Python? [python.org/downloads](https://www.python.org/downloads/) — tick **"Add Python to PATH"**
+> **Role 3 · Hải Đăng · Nhóm B7-E402** | Python 3.9+
 
 ---
 
-## ⚡ Lần Sau Chỉ Cần (Đã Cài Xong Rồi)
-
-> Sau khi đã chạy lần đầu thành công (`.venv` và packages đã có sẵn), **không cần cài lại** — chỉ cần:
-
-### Cách nhanh nhất — Double-click `run.bat`
-
-Chạy `run.bat` là xong — script tự bỏ qua cài packages nếu đã có, thẳng tới bước khởi động server.
-
-### Hoặc thủ công trong PowerShell
+## ⚡ Chạy Nhanh (Đã Cài Sẵn)
 
 ```powershell
-cd d:\VINAI_Team_093\LAB\K4-hackathon-B7-E402\codebase\backend
-
-# Kích hoạt môi trường ảo (đã tồn tại)
-.\.venv\Scripts\Activate.ps1
-
-# Chạy server
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Khi nào cần cài lại? Chỉ khi:
-- Thêm package mới vào `requirements.txt`
-- Xóa thư mục `.venv` đi
-- Chuyển sang máy khác / clone repo về máy mới
-
----
-
-## Cách 1 — PowerShell (Khuyên dùng — Lần đầu)
-
-```powershell
+# Double-click: codebase/run.bat
+# Hoặc PowerShell:
 cd d:\VINAI_Team_093\LAB\K4-hackathon-B7-E402\codebase
 .\start.ps1
 ```
 
-Nếu bị lỗi _"scripts is disabled"_, chạy lệnh này **một lần** rồi thử lại:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
+Mở: **`http://localhost:8000`**
 
 ---
 
-## Cách 2 — Double-click `run.bat`
-
-1. Vào thư mục `codebase/`
-2. Double-click `run.bat` → tự động mở cửa sổ CMD
-
-> Nếu cửa sổ chớp rồi tắt ngay → chuột phải → **"Run as administrator"**
-
----
-
-## Cách 3 — Thủ công (nếu 2 cách trên lỗi)
+## Lần Đầu — Cài & Chạy Thủ Công
 
 ```powershell
-# Vào thư mục backend
+# 1. Vào thư mục backend
 cd d:\VINAI_Team_093\LAB\K4-hackathon-B7-E402\codebase\backend
 
-# Tạo môi trường ảo .venv
+# 2. Tạo môi trường ảo
 python -m venv .venv
-
-# Kích hoạt
 .\.venv\Scripts\Activate.ps1
 
-# Cài packages
+# 3. Cài packages
 pip install -r requirements.txt
 
-# Chạy server
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# 4. Cấu hình API key
+copy .env.example .env
+# Mở .env và điền GEMINI_API_KEY=<key của bạn>
+# Lấy key miễn phí tại: https://aistudio.google.com/app/apikey
+
+# 5. Chạy server
+python main.py
 ```
 
----
-
-## Mở App
-
-Sau khi thấy `Uvicorn running on http://0.0.0.0:8000`:
-
-→ Mở trình duyệt vào **`http://localhost:8000`**
+> Nếu lỗi "scripts is disabled": `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
 ---
 
 ## Kiểm Tra Nhanh
 
-| URL | Kết quả mong đợi |
+| URL | Mong đợi |
 |---|---|
-| `http://localhost:8000/api/health` | `{"status":"ok","gemini_configured":true}` |
-| `http://localhost:8000/docs` | Swagger UI |
+| `http://localhost:8000/api/health` | `{"status":"ok","gemini_configured":true,"kb_docs":8}` |
+| `http://localhost:8000/docs` | Swagger UI — test API trực tiếp |
+| `http://localhost:8000` | Web UI Discord dark theme |
 
 ---
 
-## Cấu Trúc File
+## Cấu Trúc Code (v2.0)
 
 ```
-codebase/
-├── run.bat          ← Double-click (Windows CMD)
-├── start.ps1        ← Chạy trong PowerShell
-│
-└── backend/
-    ├── main.py              ← FastAPI app
-    ├── requirements.txt     ← Dependencies
-    ├── .env                 ← API key (KHÔNG commit Git)
-    ├── knowledge_base.json  ← 5 tài liệu mock
-    ├── .venv/               ← Tự sinh ra (gitignore)
-    └── services/
-        ├── gemini_service.py
-        ├── pdf_service.py
-        └── knowledge_base.py
+backend/
+├── main.py                 ← FastAPI: 5 routes + conversational memory
+├── requirements.txt
+├── .env.example            ← Copy → .env, điền key
+├── knowledge_base.json     ← 8 docs (6 transcripts + 2 slides) [MOCK KB]
+└── services/
+    ├── gemini_service.py   ← Gemini Flash calls + AI call logging [REAL AI]
+    ├── knowledge_base.py   ← Router: injection→logistics→ambiguous→RAG
+    └── pdf_service.py      ← PyMuPDF extraction [REAL]
 
 frontend/
-├── index.html
-├── style.css
-└── script.js
+├── index.html              ← 3 tabs: Chat / Documents / Synthesize
+├── script.js               ← v2: feedback 👍👎, citation tooltip, session memory
+└── style.css               ← Aurora dark theme + route tags + feedback styles
 ```
 
 ---
 
-## Troubleshooting
+## Tính Năng v2.0
 
-| Lỗi | Cách fix |
+| Feature | Mô tả |
 |---|---|
-| `scripts is disabled` | `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` |
-| `Port 8000 in use` | `netstat -ano \| findstr :8000` rồi `taskkill /PID <số> /F` |
-| `No module named fastapi` | `.venv` chưa activate — kiểm tra prompt có `(.venv)` chưa |
-| `INVALID_API_KEY` | Lấy key mới tại [aistudio.google.com](https://aistudio.google.com/app/apikey) |
-| PDF không đọc được | PDF dạng ảnh scan → dùng PDF có text thật |
+| **4-layer routing** | Injection ③ → Logistics ③ → Ambiguous ② → RAG ① |
+| **Conversational memory** | 4 turns per session — hỏi follow-up không cần nhắc lại context |
+| **AI call logging** | Mọi Gemini call → `eval/ai_call_log.jsonl` tự động |
+| **Feedback 👍👎** | Mỗi tin nhắn có nút feedback → `validation/feedback.jsonl` |
+| **Citation tooltip** | Hover vào [TXX-NNN] để thấy hướng dẫn verify |
+| **Route tag** | Màu xanh (KB answer), đỏ (blocked), vàng (ambiguous) |
+| **Auto-disclaimer** | Mọi AI output kèm "🤖 Tóm tắt tự động — xem nguyên văn" |
+| **Injection detection** | Block prompt injection trước khi vào Gemini |
 
 ---
 
 ## Demo 5 Phút (CP6)
 
 ```
-[0:00] Mở http://localhost:8000 — giao diện Aurora dark
+[0:00] Mở http://localhost:8000 — Status bar hiện "Gemini ✓ · 8 docs"
 
-[0:30] HAPPY PATH — Upload PDF:
+[0:30] CASE CHUẨN — Upload PDF:
        Kéo d1-slide-hackathon.pdf vào dropzone
-       → AI phân tích ~5-10s → hiện Analysis Card
-       → Hỏi follow-up: "Có nói về attention mechanism không?"
-       → AI trả lời kèm citation [T06-xxx]
+       → Summary với citations, route tag "📄 PDF Summary"
+       → Hover citation chip → tooltip hiện
 
-[2:00] FAILURE HANDLING:
-       "Deadline nộp bài là bao giờ?" → AI từ chối (Layer 3)
-       "tài liệu" (quá chung) → AI hỏi lại (Layer 2)
+[1:30] CASE CHUẨN — Q&A:
+       Gõ: "Transformer và attention mechanism hoạt động thế nào?"
+       → Route tag xanh "📚 KB Answer", có [T06-NNN]
+       → Nút 👍👎 ở dưới mỗi câu trả lời
 
-[3:30] Tab Tổng hợp → paste chat → show kết quả phân tích
+[2:30] CASE KHÓ — Out-of-scope:
+       Gõ: "Deadline nộp bài hackathon là bao giờ?"
+       → Route tag đỏ "⛔ Ngoài phạm vi", không gọi Gemini
 
-[4:00] Show Golden Set: X/20 pass · ≥75% accuracy · 100% citations
+[3:00] CASE KHÓ — Ambiguous:
+       Gõ: "tài liệu" (1 từ)
+       → Route tag vàng "💭 Hỏi lại", gợi ý 5 chủ đề cụ thể
+
+[3:30] CASE ĐA LƯỢT — Conversational:
+       Hỏi: "Transformer là gì?" → nhận trả lời
+       Hỏi tiếp: "Còn positional encoding?" → nhớ context Transformer
+
+[4:00] Tab Tổng hợp → paste chat → synthesis kết quả
+
+[4:30] Số liệu: 19/21 golden set pass → fix 2 → 21/21 (100%)
+       Quality bar: ≥75% ✅ · 100% citation ✅ · 100% scope ✅
 ```
 
 ---
 
-*VinAI Knowledge Assistant · Nhóm B7-E402 · K4 Hackathon*
+## Troubleshooting
+
+| Lỗi | Fix |
+|---|---|
+| `scripts is disabled` | `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` |
+| `Port 8000 in use` | `netstat -ano \| findstr :8000` → `taskkill /PID <N> /F` |
+| `INVALID_API_KEY` | Lấy key mới tại [aistudio.google.com](https://aistudio.google.com/app/apikey) |
+| PDF không đọc được | PDF dạng scan ảnh → error message hướng dẫn rõ |
+| `No module named fastapi` | Activate .venv trước: `.\.venv\Scripts\Activate.ps1` |
+
+---
+
+*VinAI Knowledge Assistant v2.0 · Nhóm B7-E402 · K4 Hackathon*
