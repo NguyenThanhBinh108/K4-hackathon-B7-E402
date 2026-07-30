@@ -1,0 +1,119 @@
+[
+  {
+    "id": "campus_lunch_001",
+    "scope": "campus_general",
+    "topic": "lunch",
+    "source_title": "Campus Guide - An uong",
+    "source_location": "Campus Guide, muc An uong",
+    "last_updated": "2026-07-30",
+    "content": "Hoc vien co the an trua tai khu campus dining/can tin duoc phep cho hoc vien. Neu lop co ho tro suat an rieng trong ngay, thong bao moi nhat cua khoa trong #announcements la nguon uu tien."
+  },
+  {
+    "id": "campus_bring_food_001",
+    "scope": "campus_general",
+    "topic": "bring_food",
+    "source_title": "Campus Guide - An uong va giu ve sinh",
+    "source_location": "Campus Guide, muc An uong",
+    "last_updated": "2026-07-30",
+    "content": "Neu hoc vien mang com/do an tu nha, nen an tai khu campus dining, can tin hoac khu vuc an uong duoc phep. Khong nen an trong thu vien, phong hoc, hoac khu yen tinh neu noi quy tai cho khong cho phep. Hoc vien can don dep rac va giu ve sinh sau khi an."
+  },
+  {
+    "id": "campus_rest_001",
+    "scope": "campus_general",
+    "topic": "rest_area",
+    "source_title": "Campus Guide - Khu sinh hoat chung",
+    "source_location": "Campus Guide, muc Khu sinh hoat chung",
+    "last_updated": "2026-07-30",
+    "content": "Hoc vien co the nghi trua tai khu sinh hoat chung hoac khu tu hoc duoc phep. Khong nam ngu trong khu vuc doc sach yen tinh neu noi quy thu vien khong cho phep."
+  },
+  {
+    "id": "campus_library_001",
+    "scope": "campus_general",
+    "topic": "library_hours",
+    "source_title": "Thong tin thu vien VinUni",
+    "source_location": "Trang thong tin thu vien / Campus Guide",
+    "last_updated": "2026-07-30",
+    "content": "Gio mo cua thu vien can duoc tra theo trang thong tin thu vien hoac Campus Guide moi nhat. Neu cau hoi can gio cu the ma KB khong co gio, bot phai noi chua du can cu thay vi tu tao so gio."
+  },
+  {
+    "id": "campus_library_rules_001",
+    "scope": "campus_general",
+    "topic": "library_rules",
+    "source_title": "Noi quy thu vien",
+    "source_location": "Noi quy thu vien, muc Su dung khong gian",
+    "last_updated": "2026-07-30",
+    "content": "Thu vien la khu hoc tap yen tinh. Hoc vien can giu trat tu, khong an uong gay anh huong, va khong su dung khu doc sach lam noi ngu trua neu noi quy tai cho khong cho phep."
+  },
+  {
+    "id": "campus_wifi_001",
+    "scope": "campus_general",
+    "topic": "wifi",
+    "source_title": "Campus Guide - Wifi",
+    "source_location": "Campus Guide, muc Wifi va ho tro ky thuat",
+    "last_updated": "2026-07-30",
+    "content": "Hoc vien dung wifi danh cho khach/hoc vien theo huong dan trong Campus Guide. Neu khong dang nhap duoc, lien he campus support hoac bao Lab Coach."
+  },
+  {
+    "id": "campus_parking_001",
+    "scope": "campus_general",
+    "topic": "parking",
+    "source_title": "Campus Guide - Gui xe",
+    "source_location": "Campus Guide, muc Ra vao va gui xe",
+    "last_updated": "2026-07-30",
+    "content": "Thong tin gui xe phu thuoc cong vao, khu gui xe va quy dinh the/QR cua campus. Bot chi tra loi vi tri/phi gui xe neu KB co thong tin cu the; neu khong co phai chuyen Admin."
+  },
+  {
+    "id": "course_room_001",
+    "scope": "ai_thuc_chien_course",
+    "topic": "classroom_checkin",
+    "source_title": "Thong bao khoa AI Thuc Chien",
+    "source_location": "Discord #announcements",
+    "last_updated": "2026-07-30",
+    "content": "Phong hoc, toa nha, tang va huong dan check-in theo thong bao moi nhat cua khoa trong #announcements. Khi bi lac duong hoac khong vao duoc lop, hoc vien nhan #lab-support."
+  },
+  {
+    "id": "course_attendance_001",
+    "scope": "ai_thuc_chien_course",
+    "topic": "attendance",
+    "source_title": "Handbook AI Thuc Chien - Diem danh",
+    "source_location": "Handbook AI Thuc Chien, muc Diem danh va vang hoc",
+    "last_updated": "2026-07-30",
+    "content": "Den muon, vang hoc hoac can roi lop som la quy dinh rieng cua khoa. Hoc vien can bao Lab Coach theo kenh duoc chi dinh de duoc ghi nhan dung quy dinh."
+  },
+  {
+    "id": "course_discord_001",
+    "scope": "ai_thuc_chien_course",
+    "topic": "discord_channels",
+    "source_title": "Handbook AI Thuc Chien - Kenh ho tro",
+    "source_location": "Handbook AI Thuc Chien, muc Discord",
+    "last_updated": "2026-07-30",
+    "content": "#announcements dung de xem thong bao chinh thuc; #lab-support dung khi can Lab Coach ho tro; #resources dung de lay tai lieu va link lien quan."
+  },
+  {
+    "id": "course_materials_001",
+    "scope": "ai_thuc_chien_course",
+    "topic": "materials",
+    "source_title": "Handbook AI Thuc Chien - Tai lieu",
+    "source_location": "Handbook AI Thuc Chien, muc Tai lieu va link nop bai",
+    "last_updated": "2026-07-30",
+    "content": "Link tai lieu, template va link nop bai can lay tu #resources hoac thong bao chinh thuc cua khoa. Neu co nhieu phien ban, uu tien thong bao moi nhat trong #announcements."
+  },
+  {
+    "id": "course_food_support_001",
+    "scope": "ai_thuc_chien_course",
+    "topic": "daily_food_support",
+    "source_title": "Thong bao ngay cua khoa",
+    "source_location": "Discord #announcements theo ngay",
+    "last_updated": "2026-07-30",
+    "content": "Cau hoi ve voucher, suat an duoc tai tro, hoac lop co phat com hom nay la thong tin thay doi theo ngay. Chi tra loi neu co thong bao ngay moi nhat; neu khong co, phai escalate Lab Coach/Admin."
+  },
+  {
+    "id": "campus_access_001",
+    "scope": "campus_general",
+    "topic": "campus_access",
+    "source_title": "Campus Guide - Ra vao campus",
+    "source_location": "Campus Guide, muc Ra vao campus",
+    "last_updated": "2026-07-30",
+    "content": "Hoc vien can tuan thu huong dan ra vao campus, check-in va khu vuc duoc phep su dung. Neu bi bao ve hoi thong tin hoac khong vao duoc, lien he Lab Coach/Admin."
+  }
+]

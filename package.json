@@ -1,0 +1,10 @@
+{
+  "name": "campus-companion-cp3",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node campus-companion/server.mjs",
+    "eval": "node eval/campus-companion/run_eval.mjs"
+  }
+}
