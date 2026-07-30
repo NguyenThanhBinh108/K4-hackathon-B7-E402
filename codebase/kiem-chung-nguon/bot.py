@@ -198,8 +198,54 @@ def build_refusal_embed(result, query: str) -> discord.Embed:
     return emb
 
 
+def build_campus_embed(result) -> discord.Embed:
+    """FIX-18 — luong CAMPUS (tich hop tu Campus Companion cua Linh & Liem).
+    Ba quyet dinh, moi cai mot mau va mot hanh dong tiep theo khac nhau."""
+    dec = result.campus_decision
+    src = result.campus_source or {}
+
+    if dec == "answer":
+        emb = discord.Embed(title="🏫 Thông tin campus / quy định khoá",
+                            description=result.answer[:2000], color=0x23A55A)
+        emb.add_field(
+            name="Nguồn chính thức",
+            value=f"**{src.get('source_title','?')}**\n{src.get('source_location','')}\n"
+                  f"`{src.get('id','?')}` · cập nhật {src.get('last_updated','?')}",
+            inline=False,
+        )
+    elif dec == "hoi_lai":
+        emb = discord.Embed(title="🤔 Cho mình hỏi lại cho chắc",
+                            description=result.answer[:2000], color=0x7C8CFF)
+        emb.add_field(
+            name="Vì sao mình hỏi lại",
+            value="Câu này có thể rơi vào nhiều mục quy định khác nhau. "
+                  "Trả lời nhầm mục còn tệ hơn hỏi thêm một câu.",
+            inline=False,
+        )
+    else:   # chuyen_lab_coach
+        emb = discord.Embed(
+            title="📮 Chuyển Lab Coach",
+            description=result.answer[:2000] or
+                        "Thông tin này mình chưa có trong nguồn chính thức nên không đoán.",
+            color=0xF0B232,
+        )
+        emb.add_field(
+            name="Vì sao không tự trả lời",
+            value="Thông tin thay đổi theo ngày, hoặc nằm ngoài nguồn chính thức mình có. "
+                  "Sai một chi tiết như giờ giấc/phí/quy định là bạn chịu hậu quả trực tiếp.",
+            inline=False,
+        )
+        emb.add_field(name="Nên hỏi ở đâu", value="`#lab-support` — hoặc nhắn trực tiếp Lab Coach.",
+                      inline=False)
+
+    emb.set_footer(text="Campus Companion · trả lời trong phạm vi nguồn chính thức của khoá")
+    return emb
+
+
 def build_embed(result, reading: dict) -> discord.Embed:
-    # FIX-17 — ba luong khac nhau, khong nhet tat ca vao khung "kiem chung"
+    # FIX-17/18 — bốn luồng khác nhau, không nhét tất cả vào khung "kiểm chứng"
+    if result.intent == "hoi_campus":
+        return build_campus_embed(result)
     if result.intent == "hoi_kien_thuc" and result.answer:
         return build_answer_embed(result)
     if result.intent == "ngoai_pham_vi" and not result.risk_flag:
