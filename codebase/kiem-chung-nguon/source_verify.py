@@ -402,8 +402,11 @@ def llm_verify_claim(
     if openrouter_key and requests is not None:
         # OpenRouter — dung chung 1 endpoint OpenAI-compatible cho nhieu model,
         # uu tien truoc Gemini/Anthropic neu co OPENROUTER_API_KEY.
-        model_name = os.environ.get(
-            "OPENROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"
+        # Dung `or` chu khong dung tham so mac dinh: dong "OPENROUTER_MODEL="
+        # de trong trong .env cho ra chuoi rong -> OpenRouter tra "No models
+        # provided". Cung loai loi da gap voi TRANSCRIPT_DIR.
+        model_name = (
+            os.environ.get("OPENROUTER_MODEL") or "nvidia/nemotron-3-super-120b-a12b:free"
         )
         max_retries = 4
         backoff_seconds = 8
@@ -448,7 +451,18 @@ def llm_verify_claim(
                 continue
 
             raw = data["choices"][0]["message"]["content"]
-            return _parse_llm_json(raw)
+            try:
+                return _parse_llm_json(raw)
+            except ValueError as e:
+                # FIX-19: model doi khi tra JSON BI CAT GIUA CHUNG (het token, bi
+                # ngat luong). Truoc day ValueError thoat thang ra ngoai, ma
+                # verify_message() chi bat LLMUnavailable -> chet ca luot chay
+                # vi mot tin nhan. Gio coi nhu loi tam thoi: thu lai, va lan cuoi
+                # thi bao LLMUnavailable de caller lui ve MOCK cho tu te.
+                last_error = f"JSON hong/bi cat: {e}"
+                print(f"  [json-loi] lan thu {attempt + 1}/{max_retries}: {last_error}", file=sys.stderr)
+                time.sleep(2)
+                continue
         raise LLMUnavailable(f"OpenRouter loi sau {max_retries} lan thu: {last_error}")
 
     if gemini_key and requests is not None:
@@ -760,6 +774,14 @@ def verify_message(msg: dict) -> VerificationResult:
         )
     except LLMUnavailable as e:
         print(f"  [!] {e} -> chuyen sang MOCK MODE cho message {msg['id']}", file=sys.stderr)
+        llm_out = mock_llm_verify_claim(text, urls, domain_info, risk_reasons)
+        mode = "MOCK"
+    except Exception as e:
+        # FIX-19 — luoi an toan cuoi cung. Bat cu loi la nao tu tang LLM (JSON
+        # hong, mang dut, provider doi dinh dang) cung KHONG duoc phep giet ca
+        # luot chay 31 case hay lam bot Discord im lang khong ly do.
+        print(f"  [!] loi tang LLM ({type(e).__name__}: {e}) -> MOCK MODE cho message {msg['id']}",
+              file=sys.stderr)
         llm_out = mock_llm_verify_claim(text, urls, domain_info, risk_reasons)
         mode = "MOCK"
 
