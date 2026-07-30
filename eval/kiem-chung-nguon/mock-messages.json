@@ -1,0 +1,121 @@
+[
+  {
+    "id": "M01",
+    "author": "học viên A",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Mình vừa đọc paper này về RAG, giải thích rất rõ vì sao model cần trích dẫn nguồn khi trả lời: https://arxiv.org/abs/2005.11401",
+    "expected_class": "verified_paper"
+  },
+  {
+    "id": "M02",
+    "author": "học viên B",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Cách fix lỗi CUDA out of memory khi finetune: giảm batch_size xuống 1 + bật gradient checkpointing. Repo mẫu coi flag nào cần bật: https://github.com/huggingface/transformers",
+    "expected_class": "verified_github"
+  },
+  {
+    "id": "M03",
+    "author": "học viên C",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Nghe nói GPT-4 có 1.76 nghìn tỷ tham số, ai xác nhận giúp mình không, thấy trên mấy group đồn vậy",
+    "expected_class": "unverified_no_source_rumor"
+  },
+  {
+    "id": "M04",
+    "author": "học viên D",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Prompt engineering thực chất là mình đang train lại model đó mọi người, giống hệt fine-tuning luôn",
+    "expected_class": "contradicted_domain_error"
+  },
+  {
+    "id": "M05",
+    "author": "học viên E",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Mẹo: set temperature=0 là AI sẽ luôn trả lời đúng 100%, không bao giờ hallucinate nữa, mọi người áp dụng đi",
+    "expected_class": "contradicted_dangerous_domain_error"
+  },
+  {
+    "id": "M06",
+    "author": "học viên F",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Anthropic vừa ra doc mới về prompt caching, giải thích kỹ lắm, đọc ở đây: https://docs.claude.com/en/docs/build-with-claude/prompt-caching",
+    "expected_class": "verified_official_doc"
+  },
+  {
+    "id": "M07",
+    "author": "học viên G",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Model Context Protocol (MCP) là chuẩn do Google phát triển từ năm 2023 nha mọi người, mình đọc ở đâu đó rồi",
+    "expected_class": "contradicted_factual_error"
+  },
+  {
+    "id": "M08",
+    "author": "học viên H",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Có ai dùng LangChain thấy chậm hơn LlamaIndex không, mình thấy vậy nhưng không chắc lắm, có khi do code mình viết dở",
+    "expected_class": "ambiguous_opinion"
+  },
+  {
+    "id": "M09",
+    "author": "học viên I",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Đọc bài blog này thấy hay, tổng hợp tips prompt xịn lắm: https://randomblog123.fakedomain.example/ai-tips",
+    "expected_class": "unverified_low_authority_domain"
+  },
+  {
+    "id": "M10",
+    "author": "học viên K",
+    "channel": "#chia-se-kien-thuc",
+    "text": "RLHF là kỹ thuật OpenAI phát minh ra đầu tiên, dùng cho InstructGPT là bản đầu tiên áp dụng",
+    "expected_class": "partially_correct_nuance"
+  },
+  {
+    "id": "M11",
+    "author": "T038",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Chia sẻ lộ trình Từ ý tưởng đến sản phẩm AI thực tế (tài liệu tham khảo). Đây là bộ tài liệu mình xây dựng trong quá trình làm AI Trainer, tập trung vào cách ứng dụng Vibe Coding để xây dựng sản phẩm AI từ đầu đến cuối: tìm và đánh giá ý tưởng -> tư duy sản phẩm -> nghiên cứu nhu cầu người dùng -> xây MVP -> debug. Trước đây đã chia sẻ trên vài cộng đồng, hơn 500.000 reached. Link tài liệu: https://learning.aiecos.ai/ Link repo: https://github.com/aiecosvietnam/learning-ai",
+    "expected_class": "verified_self_published_resource"
+  },
+  {
+    "id": "M12",
+    "author": "T184",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Muốn chia sẻ một skill khá hữu ích để tạo slide thuyết trình HTML từ outline/ý tưởng/source code cho AI coding agent: https://github.com/zarazhangrui/frontend-slides (dùng qua Claude Code plugin hoặc gửi SKILL.md cho agent khác). Vài skill khác mình đang dùng: Superpowers https://github.com/obra/superpowers (agent làm việc có quy trình hơn với task phức tạp) và Caveman https://github.com/JuliusBrussee/caveman (câu trả lời ngắn gọn, tiết kiệm token hơn).",
+    "expected_class": "verified_github_multiple"
+  },
+  {
+    "id": "M13",
+    "author": "T033",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Hướng dẫn tải slide bài giảng trong VLearn: mở file .pdf trong trình đọc -> mở DevTools (Ctrl+Shift+I) -> tab Network -> F5 -> gõ 'reader' vào Filter -> bấm request reader?lectureId=... -> mở tab Payload -> copy lectureId và materialId -> ghép vào link https://cdn.vlearn.dev/slides/comp2010/LECTURE_ID/MATERIAL_ID.pdf -> dán vào tab mới để mở file PDF trực tiếp. Link chi tiết: https://drive.google.com/file/d/17YgNHHoUZGqQhNDTu7H3V0wZ8UF88ykE/view",
+    "expected_class": "out_of_scope_platform_workaround"
+  },
+  {
+    "id": "M14",
+    "author": "G18-T058",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Hướng dẫn dùng Claude Code với Claude Opus 5 miễn phí qua nền tảng bên thứ ba Agent Router (https://agentrouter.org/register?aff=0qYW) hoặc gorouter (https://gorouter.app/sign-up?aff=Cbeo): đăng ký bằng GitHub nhận $100 tín dụng, mỗi ngày đăng xuất-đăng nhập lại nhận thêm $25 miễn phí, tạo API token trong console rồi dán vào VSCode settings, đổi ANTHROPIC_BASE_URL trỏ sang domain của bên thứ ba đó, đổi ANTHROPIC_MODEL thành claude-opus-5. Link đăng ký có gắn mã giới thiệu (aff=) của người chia sẻ.",
+    "expected_class": "high_risk_unofficial_proxy_security_concern"
+  },
+  {
+    "id": "M15",
+    "author": "G18-T058",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Claude Code là công cụ vibe coding được giới lập trình viên ưa chuộng nhất hiện nay. Nhược điểm lớn nhất: quá đắt, khó tiếp cận với sinh viên/người mới. Hướng dẫn dùng Claude Code với Claude Opus 5 miễn phí qua Agent Router (https://agentrouter.org/register?aff=0qYW) hoặc gorouter (https://gorouter.app/sign-up?aff=Cbeo) — bên gorouter hạn mức ít hơn nhưng chính sách nội dung lỏng hơn. Đăng ký bằng GitHub nhận $100 tín dụng, mỗi ngày đăng xuất-đăng nhập lại nhận thêm $25 miễn phí. Tạo API token trong console (chọn Unlimited quota), cài Claude Code vào VSCode, thêm config: ANTHROPIC_AUTH_TOKEN = token của bạn, ANTHROPIC_BASE_URL = https://agentrouter.org, ANTHROPIC_MODEL = claude-opus-5. Đăng ký là được 50 triệu token, mỗi ngày đăng nhập thêm 12.5 triệu token.",
+    "expected_class": "high_risk_unofficial_proxy_security_concern"
+  },
+  {
+    "id": "M16",
+    "author": "T078",
+    "channel": "#chia-se-kien-thuc",
+    "text": "Chia sẻ bộ UI Design Keywords giúp AI sinh giao diện đẹp hơn. Nhiều giao diện demo lab AI Thực Chiến có cảm giác 'AI generated' không phải vì AI code chưa tốt mà vì prompt chỉ mô tả chức năng, chưa mô tả phong cách thiết kế. Mình tổng hợp hơn 20 UI Design Style (SaaS, AI, Education, Gaming, Fintech, Restaurant, Healthcare, Luxury, Travel...) kèm keyword đặc trưng vào 1 file .txt để copy trực tiếp vào prompt, đóng vai trò design direction. Chỉ cần thêm 10-20 keyword phù hợp là UI đẹp và nhất quán hơn, giảm số lần regenerate. File đính kèm: Prompt_UiDesignStyle.txt (3 KB). Ví dụ: 'Modern SaaS Glassmorphism Professional Clean Data-Driven Transparent Cards Soft Blur Structured Grid Corporate Blue'.",
+    "expected_class": "verified_self_published_attachment_no_url"
+  },
+  {
+    "id": "M17",
+    "author": "G08-T083",
+    "channel": "#chia-se-kien-thuc",
+    "text": "[AI Tips] Add Thẻ Học Viên vào Smartphone (Samsung & Android) - Hết lo quên thẻ kẹt ngoài cửa! Mẹo mô phỏng Thẻ Học Viên thành Thẻ NFC kỹ thuật số trên điện thoại. Samsung Wallet: bật NFC, mở Samsung Wallet, chọn Thẻ truy cập NFC, áp mặt lưng thẻ vật lý vào lưng điện thoại để quét chip, đặt tên & lưu. Máy Xiaomi/OPPO/Vivo/Realme: bật NFC, mở Ví hệ thống, chọn Thẻ cửa/Mô phỏng thẻ từ, áp thẻ vật lý vào lưng máy để sao chép chip NFC/RFID 13.56 MHz. CẢNH BÁO: không cho người lạ mượn thẻ vật lý vì kẻ xấu có thể áp điện thoại clone thành 'thẻ ma' ra vào tự do.",
+    "expected_class": "out_of_scope_non_ai_content_security_adjacent"
+  }
+]
