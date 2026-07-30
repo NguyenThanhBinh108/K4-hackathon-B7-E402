@@ -101,6 +101,7 @@ VERDICT_COLOR = {
     "CONTRADICTED": 0xF23F43,
     "OPINION_NOT_APPLICABLE": 0x949BA4,
     "OUT_OF_SCOPE_POLICY_QUESTION": 0x949BA4,
+    "EXPERIENCE_BASED_UNVERIFIABLE": 0xF0B232,
 }
 VERDICT_LABEL = {
     "VERIFIED": "✅ Đã xác minh",
@@ -111,6 +112,7 @@ VERDICT_LABEL = {
     "CONTRADICTED": "❌ Mâu thuẫn với nguồn",
     "OPINION_NOT_APPLICABLE": "💬 Ý kiến cá nhân",
     "OUT_OF_SCOPE_POLICY_QUESTION": "🔒 Ngoài phạm vi — câu hỏi chính sách",
+    "EXPERIENCE_BASED_UNVERIFIABLE": "🙋 Kinh nghiệm cá nhân — chưa thể xác minh khách quan",
 }
 
 _last_call: dict[int, float] = {}

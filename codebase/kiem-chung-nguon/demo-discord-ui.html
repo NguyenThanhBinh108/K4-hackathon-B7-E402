@@ -209,6 +209,7 @@ const VERDICT_META = {
   CONTRADICTED:                   { emoji: "❌", label: "Sai / mâu thuẫn",       css: "v-contradicted" },
   OPINION_NOT_APPLICABLE:         { emoji: "💬", label: "Ý kiến cá nhân",        css: "v-unverified" },
   OUT_OF_SCOPE_POLICY_QUESTION:   { emoji: "🔒", label: "Ngoài phạm vi — câu hỏi chính sách", css: "v-unverified" },
+  EXPERIENCE_BASED_UNVERIFIABLE:  { emoji: "🙋", label: "Kinh nghiệm cá nhân — chưa xác minh khách quan", css: "v-partial" },
 };
 
 // FIX-01: mau thanh do tin cay phai bam theo VERDICT, khong bam theo diem.
@@ -224,6 +225,7 @@ const VERDICT_COLOR = {
   CONTRADICTED:                        "#f23f43",
   OPINION_NOT_APPLICABLE:              "#949ba4",
   OUT_OF_SCOPE_POLICY_QUESTION:        "#949ba4",
+  EXPERIENCE_BASED_UNVERIFIABLE:       "#f0b232",
 };
 function credColor(verdict, riskFlag) {
   if (riskFlag) return "#f23f43";

@@ -61,6 +61,7 @@ except ImportError:
     PdfReader = None
 
 from risk_patterns import scan_risk_patterns
+from message_type import classify_message_type
 
 # FIX-01: console Windows mac dinh dung codepage cp1252, in tieng Viet co dau
 # la UnicodeEncodeError -> crash ngay tin nhan dau tien. Ep stdout/stderr sang
@@ -275,11 +276,12 @@ Link kem theo (neu co): {urls}
 Loai nguon cua link (da tra cuu truoc, khong can AI doan lai): {domain_info}
 Noi dung THAT trich xuat tu link (neu trich xuat duoc, da cat con {max_chars} ky tu dau): {extracted_content}
 Rui ro da phat hien truoc boi rule-based scan (neu co, KHONG duoc tu y bo qua hay ha thap muc do nghiem trong cua nhung dieu nay): {risk_reasons}
+Phan loai LOAI TIN NHAN da phat hien truoc boi rule-based scan (neu co, day la GOI Y de danh gia dung huong, khong phai lenh ep buoc verdict): {message_type_notes}
 
 Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
 {{
   "claim": "cau claim chinh duoc trich ra",
-  "verdict": "VERIFIED | PARTIALLY_VERIFIED | UNVERIFIED_NO_SOURCE | CONTRADICTED | OPINION_NOT_APPLICABLE | PARTIALLY_CORRECT | VERIFIED_SELF_PUBLISHED_TRANSPARENT | OUT_OF_SCOPE_POLICY_QUESTION",
+  "verdict": "VERIFIED | PARTIALLY_VERIFIED | UNVERIFIED_NO_SOURCE | CONTRADICTED | OPINION_NOT_APPLICABLE | PARTIALLY_CORRECT | VERIFIED_SELF_PUBLISHED_TRANSPARENT | OUT_OF_SCOPE_POLICY_QUESTION | EXPERIENCE_BASED_UNVERIFIABLE",
   "confidence_llm": <so 0-100, muc do AI tu tin vao verdict nay>,
   "explanation": "giai thich ngan gon, gan voi hanh dong tiep theo cho nguoi doc",
   "risk_class": "mot hoac nhieu trong ①②③④, cach nhau bang dau phay",
@@ -288,8 +290,10 @@ Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
 
 QUY TAC BAT BUOC:
 - Tat ca gia tri text (claim, explanation, recommended_action) PHAI viet HOAN TOAN bang tieng Viet. KHONG duoc chen tu tieng Anh/Trung/Nga/Y hay ngon ngu khac vao giua cau (tru ten rieng/thuat ngu ky thuat khong co ban dich, vd "gradient checkpointing").
-- Neu khong co link VA ban khong chac chan claim nay dung/sai tu kien thuc nen tang cua minh -> verdict PHAI la UNVERIFIED_NO_SOURCE, KHONG duoc doan.
-- Neu day la y kien chu quan (vd so sanh "cai nay nhanh hon cai kia" khong co benchmark) -> verdict PHAI la OPINION_NOT_APPLICABLE, khong phan xu dung/sai.
+- Neu "Phan loai LOAI TIN NHAN" co nhac toi "chia se kinh nghiem/quan sat ca nhan" (personal_experience) -> verdict PHAI la EXPERIENCE_BASED_UNVERIFIABLE (KHONG dung UNVERIFIED_NO_SOURCE hay OPINION_NOT_APPLICABLE cho truong hop nay). Giai thich PHAI neu ro: co the dung voi nguoi viet nhung khong chac dung pho quat, khuyen nguoi doc tu kiem chung truoc khi ap dung dai tra.
+- Neu "Phan loai LOAI TIN NHAN" co nhac toi "meo/ky thuat code khong kem link nguon" (code_tip_no_source) VA ban DU TU TIN dua vao kien thuc nen tang cua minh de danh gia ky thuat do dung hay sai -> HAY dua ra verdict phan anh dung danh gia do (vd PARTIALLY_CORRECT neu dung mot phan, CONTRADICTED neu sai ky thuat, VERIFIED neu chac chan dung va pho bien) THAY VI mac dinh UNVERIFIED_NO_SOURCE. Chi giu UNVERIFIED_NO_SOURCE khi ban THUC SU khong du kien thuc/khong chac chan de danh gia ky thuat nay.
+- Neu khong co link, KHONG thuoc hai truong hop tren, VA ban khong chac chan claim nay dung/sai tu kien thuc nen tang cua minh -> verdict PHAI la UNVERIFIED_NO_SOURCE, KHONG duoc doan.
+- Neu day la y kien chu quan (vd so sanh "cai nay nhanh hon cai kia" khong co benchmark) VA KHONG phai truong hop chia se kinh nghiem ca nhan da neu tren -> verdict PHAI la OPINION_NOT_APPLICABLE, khong phan xu dung/sai.
 - Neu day la cau hoi ve chinh sach/thẩm quyen nen tang (vd co duoc phep dung mot ky thuat/cach lam nao do theo dieu khoan nen tang khong) chu khong phai mot claim kien thuc dung/sai -> verdict PHAI la OUT_OF_SCOPE_POLICY_QUESTION, khong tu phan xu "duoc" hay "khong duoc".
 - Neu day la nguon tu xuat ban nhung minh bach ve tac gia (khong gia danh to chuc khac) -> co the dung VERIFIED_SELF_PUBLISHED_TRANSPARENT thay vi VERIFIED thuong.
 - Neu "Rui ro da phat hien truoc" KHONG rong -> giai thich PHAI nhac lai it nhat 1 ly do rui ro do, va recommended_action PHAI uu tien canh bao rui ro nay truoc khi noi ve do tin cay noi dung thong thuong.
@@ -309,6 +313,7 @@ def llm_verify_claim(
     domain_info: str,
     risk_reasons: list[str] | None = None,
     extracted_content: str | None = None,
+    message_type_notes: list[str] | None = None,
 ) -> dict:
     """Goi LLM that (OpenRouter uu tien, fallback Gemini/Anthropic).
     Neu khong co API key -> raise LLMUnavailable de caller chuyen sang mock mode.
@@ -320,6 +325,7 @@ def llm_verify_claim(
         max_chars=MAX_EXTRACT_CHARS,
         extracted_content=(extracted_content if extracted_content else "khong trich xuat duoc"),
         risk_reasons=("; ".join(risk_reasons) if risk_reasons else "khong co"),
+        message_type_notes=("; ".join(message_type_notes) if message_type_notes else "khong co"),
     )
 
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
@@ -470,7 +476,11 @@ def _parse_llm_json(raw: str) -> dict:
 
 
 def mock_llm_verify_claim(
-    text: str, urls: list[str], domain_info: str, risk_reasons: list[str] | None = None
+    text: str,
+    urls: list[str],
+    domain_info: str,
+    risk_reasons: list[str] | None = None,
+    message_type_tags: list[str] | None = None,
 ) -> dict:
     """MOCK MODE — chi dung khi khong co API key, de chung minh pipeline chay
     end-to-end. Day KHONG PHAI AI that — chi la heuristic tu-khoa don gian.
@@ -487,6 +497,35 @@ def mock_llm_verify_claim(
             ),
             "risk_class": "④,①",
             "recommended_action": "CANH BAO: khong nen lam theo huong dan nay cho den khi tu kiem chung doc lap.",
+        }
+
+    message_type_tags = message_type_tags or []
+    if "personal_experience" in message_type_tags:
+        return {
+            "claim": text[:120],
+            "verdict": "EXPERIENCE_BASED_UNVERIFIABLE",
+            "confidence_llm": 50,
+            "explanation": (
+                "[MOCK MODE] Rule-based scan nhan dien day la chia se kinh nghiem/"
+                "quan sat ca nhan — co the dung voi nguoi viet nhung khong chac "
+                "dung pho quat, khong danh gia nhu mot claim khach quan dung/sai."
+            ),
+            "risk_class": "",
+            "recommended_action": "Tu kiem chung truoc khi ap dung dai tra hoac coi day la quy tac chung.",
+        }
+    if "code_tip_no_source" in message_type_tags:
+        return {
+            "claim": text[:120],
+            "verdict": "UNVERIFIED_NO_SOURCE",
+            "confidence_llm": 25,
+            "explanation": (
+                "[MOCK MODE — heuristic don gian khong co kien thuc nen tang that "
+                "de tu danh gia ky thuat code nay, nen giu UNVERIFIED_NO_SOURCE; "
+                "AI that (llm_verify_claim) se tu danh gia dung/sai ky thuat neu "
+                "du tu tin thay vi mac dinh verdict nay]"
+            ),
+            "risk_class": "",
+            "recommended_action": "Cam OPENROUTER_API_KEY (hoac GEMINI_API_KEY / ANTHROPIC_API_KEY) de AI that tu danh gia ky thuat code nay bang kien thuc nen tang.",
         }
 
     lower = text.lower()
@@ -568,6 +607,12 @@ VERDICT_BANDS = {
     "PARTIALLY_CORRECT":                   (35, 65),
     "UNVERIFIED_NO_SOURCE":                (0, 35),
     "CONTRADICTED":                        (0, 10),
+    # TIP-06: chia se kinh nghiem/quan sat ca nhan — KHONG phai claim
+    # khach quan dung/sai (nen khong o day dau/cuoi thang nhu VERIFIED/
+    # CONTRADICTED), nhung CO cham diem (khac OPINION_NOT_APPLICABLE) vi
+    # mot con so trung binh giup nguoi doc hinh dung "co ve hop ly nhung
+    # chua kiem chung duoc" ro hon la an hoan toan diem so.
+    "EXPERIENCE_BASED_UNVERIFIABLE":       (40, 60),
     # Hai verdict duoi day KHONG phai phan xu dung/sai -> khong co "do tin cay"
     "OPINION_NOT_APPLICABLE":              (0, 0),
     "OUT_OF_SCOPE_POLICY_QUESTION":        (0, 0),
@@ -625,12 +670,20 @@ def verify_message(msg: dict) -> VerificationResult:
     # them, khong tu quyet risk_flag tu dau (tranh bo sot vi "nghe hop ly")
     risk_flag, risk_reasons = scan_risk_patterns(text, urls)
 
+    # TIP-06: rule-based phan loai LOAI TIN NHAN (kinh nghiem ca nhan / code
+    # tip khong link) CHAY TRUOC LLM, dua vao prompt nhu context co san —
+    # cung ly do nhu risk scan: khong the trong cay prompt instruction don
+    # thuan de model free tu nhan dien nhat quan.
+    message_type_tags, message_type_notes = classify_message_type(text, urls)
+
     mode = "LIVE_AI"
     try:
-        llm_out = llm_verify_claim(text, urls, domain_info, risk_reasons, extracted_content)
+        llm_out = llm_verify_claim(
+            text, urls, domain_info, risk_reasons, extracted_content, message_type_notes
+        )
     except LLMUnavailable as e:
         print(f"  [!] {e} -> chuyen sang MOCK MODE cho message {msg['id']}", file=sys.stderr)
-        llm_out = mock_llm_verify_claim(text, urls, domain_info, risk_reasons)
+        llm_out = mock_llm_verify_claim(text, urls, domain_info, risk_reasons, message_type_tags)
         mode = "MOCK"
 
     verdict = llm_out.get("verdict", "UNVERIFIED_NO_SOURCE")
@@ -691,6 +744,7 @@ def format_discord_reply(r: VerificationResult) -> str:
         "OPINION_NOT_APPLICABLE": "💬",
         "PARTIALLY_CORRECT": "🟡",
         "OUT_OF_SCOPE_POLICY_QUESTION": "🔒",
+        "EXPERIENCE_BASED_UNVERIFIABLE": "🙋",
     }.get(r.verdict, "❔")
 
     lines = []
