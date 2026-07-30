@@ -467,9 +467,18 @@ def llm_verify_claim(
 
     if gemini_key and requests is not None:
         # Goi Gemini REST API truc tiep (khong can cai SDK rieng)
+        # FIX-20: ten model Gemini hardcode bi MUC. Do ngay 31/07: goi
+        # `gemini-2.0-flash` tra HTTP 404 "no longer available", va ca
+        # `gemini-2.5-flash`, `gemini-2.5-flash-lite` cung 404 "no longer
+        # available to new users" — du chung VAN nam trong danh sach
+        # /v1beta/models. Liet ke duoc khong co nghia la goi duoc.
+        # Mac dinh dung `gemini-flash-latest`: day la bi danh Google luon tro
+        # toi ban flash hien hanh, nen khong hong khi Google doi phien ban.
+        # Doi model cu the thi dat GEMINI_MODEL trong .env.
+        gemini_model = os.environ.get("GEMINI_MODEL") or "gemini-flash-latest"
         url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"gemini-2.0-flash:generateContent?key={gemini_key}"
+            f"{gemini_model}:generateContent?key={gemini_key}"
         )
         # Retry voi backoff cho 429 (Too Many Requests) — free tier Gemini
         # gioi han so request/phut, goi 14 message lien tiep rat de dinh rate
@@ -490,11 +499,35 @@ def llm_verify_claim(
                 time.sleep(backoff_seconds)
                 backoff_seconds *= 2
                 continue
+            # Ten model sai / model da ngung -> KHONG retry, bao ro de nguoi ta
+            # biet phai sua GEMINI_MODEL, thay vi im lang lui ve MOCK.
+            if resp.status_code in (400, 404):
+                try:
+                    msg = resp.json()["error"]["message"]
+                except Exception:
+                    msg = resp.text[:200]
+                raise LLMUnavailable(
+                    f"Gemini tu choi model '{gemini_model}': {msg}\n"
+                    f"    -> dat GEMINI_MODEL trong .env sang model con dung duoc "
+                    f"(vd gemini-flash-latest)."
+                )
+            if resp.status_code == 503:   # qua tai tam thoi
+                last_error = f"503 qua tai (lan thu {attempt + 1}/{max_retries})"
+                print(f"  [gemini-503] {last_error} -> cho {backoff_seconds}s...", file=sys.stderr)
+                time.sleep(backoff_seconds)
+                backoff_seconds *= 2
+                continue
             resp.raise_for_status()
             data = resp.json()
             raw = data["candidates"][0]["content"]["parts"][0]["text"]
-            return _parse_llm_json(raw)
-        raise LLMUnavailable(f"Gemini bi rate-limit sau {max_retries} lan thu: {last_error}")
+            try:
+                return _parse_llm_json(raw)
+            except ValueError as e:       # JSON bi cat — giong nhanh OpenRouter
+                last_error = f"JSON hong/bi cat: {e}"
+                print(f"  [json-loi] lan thu {attempt + 1}/{max_retries}: {last_error}", file=sys.stderr)
+                time.sleep(2)
+                continue
+        raise LLMUnavailable(f"Gemini loi sau {max_retries} lan thu: {last_error}")
 
     if anthropic_key and requests is not None:
         resp = requests.post(
