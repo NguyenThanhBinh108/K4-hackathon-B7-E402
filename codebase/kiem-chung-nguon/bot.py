@@ -39,6 +39,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -346,11 +347,62 @@ class KcnBot(discord.Client):
         except FileNotFoundError as e:
             print(f"[!] {e}\n    -> tinh nang 'nen doc lai bai nao' se khong chay", file=sys.stderr)
 
+        import campus_kb
+
+        n_kb = len(campus_kb.load_kb())
+        if n_kb:
+            print(f"Campus KB: {n_kb} muc · chu de: {', '.join(campus_kb.topics()[:6])}...", flush=True)
+        else:
+            print("[!] Campus KB rong -> luong hoi_campus se khong tra loi duoc", file=sys.stderr)
+
+        has_key = any(os.environ.get(k) for k in
+                      ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"))
+        print(f"Che do AI: {'AI that' if has_key else 'MOCK (chua co key)'}", flush=True)
+
     async def on_message(self, message: discord.Message) -> None:
+        if message.author.bot or (self.user and message.author.id == self.user.id):
+            return                                    # chong vong lap
+
+        # FIX-21: tra loi khi bi @ TRUC TIEP hoac nhan tin rieng.
+        # Vi sao lam duoc ma khong can Message Content Intent: Discord van gui
+        # noi dung tin nhan cho bot trong 3 truong hop mien tru — tin cua chinh
+        # bot, tin trong DM, va TIN CO @ BOT. Nen kenh khong bat AUTO van dung
+        # duoc bang cach @ bot, va khong phai xin quyen privileged.
+        is_dm = message.guild is None
+        mentioned = self.user is not None and self.user in message.mentions
+        if mentioned or is_dm:
+            noi_dung = re.sub(rf"<@!?{self.user.id}>", "", message.content).strip()
+            if not noi_dung:
+                await message.reply(
+                    "Bạn @ mình kèm câu hỏi luôn nhé — ví dụ:\n"
+                    "> @Kiểm chứng nguồn  trưa nay ăn ở đâu được?\n"
+                    "> @Kiểm chứng nguồn  attention trong transformer là gì?\n"
+                    "Hoặc dùng `/kiemchung <nội dung>`.",
+                    mention_author=False,
+                )
+                return
+            now = time.time()
+            if now - _last_call.get(message.author.id, 0) < COOLDOWN_SECONDS:
+                await message.reply(
+                    f"Chờ {COOLDOWN_SECONDS}s giữa hai lượt giúp mình nhé (tránh cháy quota AI).",
+                    mention_author=False,
+                )
+                return
+            _last_call[message.author.id] = now
+            async with message.channel.typing():
+                try:
+                    result, reading = await run_verification(noi_dung, str(message.id))
+                except Exception as e:
+                    print(f"[loi] {type(e).__name__}: {e}", file=sys.stderr)
+                    await message.reply("Có lỗi khi xử lý, bạn thử lại sau nhé.", mention_author=False)
+                    return
+            log_run(message.id, message.author.id, result, "mention")
+            await message.reply(embed=build_embed(result, reading), mention_author=False)
+            return
+
+        # --- che do AUTO: tu quet moi tin trong kenh khai bao ---
         if not AUTO_CHANNEL_IDS:
             return
-        if message.author.bot or message.author.id == self.user.id:
-            return                                    # chong vong lap
         if message.channel.id not in AUTO_CHANNEL_IDS:
             return
         if len(message.content) < AUTO_MIN_LEN:
