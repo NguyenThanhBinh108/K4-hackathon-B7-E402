@@ -1,0 +1,94 @@
+{
+  "documents": [
+    {
+      "id": "T04",
+      "title": "Day 1 Foundation: Cách LLM Hoạt Động",
+      "type": "transcript",
+      "module": "Day 1",
+      "level": "Foundation",
+      "segments": 98,
+      "reliability": "Cao",
+      "key_concepts": ["LLM", "Token", "Embedding", "Context Window", "Temperature"],
+      "summary": "Transcript buổi Day 1 Foundation giải thích cách LLM hoạt động từ cơ bản: tokenization, embedding, attention mechanism, và cách model sinh ra văn bản.",
+      "key_takeaways": [
+        "LLM không 'hiểu' ngôn ngữ mà dự đoán token tiếp theo dựa trên xác suất",
+        "Context window giới hạn lượng thông tin model có thể xử lý cùng lúc",
+        "Temperature điều chỉnh mức độ ngẫu nhiên trong output của model"
+      ],
+      "citations": ["[T04-001]", "[T04-045]", "[T04-067]", "[T04-098]"]
+    },
+    {
+      "id": "T06",
+      "title": "Foundation: Transformer & Attention Mechanism",
+      "type": "transcript",
+      "module": "Day 1",
+      "level": "Foundation",
+      "segments": 162,
+      "reliability": "Cao",
+      "key_concepts": ["Transformer", "Self-Attention", "Multi-head Attention", "Positional Encoding", "Query/Key/Value"],
+      "summary": "Transcript giải thích kiến trúc Transformer từ góc độ trực quan: cơ chế self-attention, multi-head attention, positional encoding, và tại sao Transformer vượt trội RNN.",
+      "key_takeaways": [
+        "Self-attention cho phép model nhìn toàn bộ sequence cùng lúc thay vì tuần tự",
+        "Multi-head attention học nhiều dạng relationship khác nhau trong dữ liệu",
+        "Positional encoding thêm thông tin vị trí vì Transformer không có thứ tự tự nhiên"
+      ],
+      "citations": ["[T06-001]", "[T06-045]", "[T06-089]", "[T06-162]"]
+    },
+    {
+      "id": "T01",
+      "title": "Day 2: Xác Định Bài Toán Kinh Doanh Cho AI",
+      "type": "transcript",
+      "module": "Day 2",
+      "level": "Intermediate",
+      "segments": 89,
+      "reliability": "Cao",
+      "key_concepts": ["Problem Framing", "JTBD", "Job Executor", "Pain Point", "Impact Metric"],
+      "summary": "Transcript buổi Day 2 sáng về phương pháp xác định bài toán AI đúng: Jobs-to-be-Done framework, phân biệt pain point vs symptom, và cách đo impact.",
+      "key_takeaways": [
+        "Bài toán AI tốt = Pain thật + Data có + AI làm tốt hơn con người",
+        "JTBD: tập trung vào 'job' người dùng muốn hoàn thành, không phải feature",
+        "Đo impact bằng metric cụ thể trước khi build"
+      ],
+      "citations": ["[T01-001]", "[T01-034]", "[T01-078]", "[T01-089]"]
+    },
+    {
+      "id": "T05",
+      "title": "Bài Toán · Đánh Giá · Dữ Liệu",
+      "type": "transcript",
+      "module": "Day 2",
+      "level": "Intermediate",
+      "segments": 154,
+      "reliability": "Vừa",
+      "key_concepts": ["Evaluation", "Golden Set", "Hallucination", "RAG", "Fine-tuning"],
+      "summary": "Transcript về cách đánh giá hệ thống AI: xây golden set, đo accuracy, phát hiện hallucination. So sánh RAG vs Fine-tuning và khi nào dùng cái nào.",
+      "key_takeaways": [
+        "Golden set phải cover đủ các loại failure case, không chỉ happy path",
+        "RAG phù hợp khi cần knowledge cập nhật; fine-tuning khi cần style/behavior",
+        "Hallucination giảm đáng kể khi dùng grounding + citation bắt buộc"
+      ],
+      "citations": ["[T05-012]", "[T05-067]", "[T05-112]", "[T05-154]"]
+    },
+    {
+      "id": "D1-SLIDE",
+      "title": "Slide Day 1: AI & LLM Foundation",
+      "type": "slide",
+      "module": "Day 1",
+      "level": "Foundation",
+      "segments": null,
+      "reliability": "Cao",
+      "key_concepts": ["AI Overview", "LLM", "GPT", "Prompt Engineering", "Use Cases"],
+      "summary": "Slide bài giảng Day 1 giới thiệu tổng quan AI, LLM, và cách áp dụng vào bài toán thực tế trong doanh nghiệp.",
+      "key_takeaways": [
+        "AI không phải magic — là pattern matching rất phức tạp trên data lớn",
+        "LLM mạnh nhất ở text generation, summarization, Q&A; yếu ở reasoning phức tạp",
+        "Prompt engineering là kỹ năng cốt lõi để dùng LLM hiệu quả"
+      ],
+      "citations": ["[D1-slide-p1]", "[D1-slide-p15]", "[D1-slide-p30]"]
+    }
+  ],
+  "metadata": {
+    "total_documents": 5,
+    "last_updated": "2026-07-30",
+    "version": "1.0-mock"
+  }
+}

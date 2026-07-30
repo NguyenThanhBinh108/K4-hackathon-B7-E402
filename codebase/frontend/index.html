@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VinAI Knowledge Assistant</title>
+  <meta name="description" content="AI-powered document intelligence cho cộng đồng học viên VinAI Discord" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ══ TOP NAVIGATION BAR ══════════════════════════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo">⚡</div>
+      <span class="nav-title">VinAI <span class="nav-title-accent">Knowledge Assistant</span></span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="chat" onclick="switchTab('chat')">
+        <span class="tab-icon">💬</span> Chat
+      </button>
+      <button class="nav-tab" data-tab="documents" onclick="switchTab('documents')">
+        <span class="tab-icon">📁</span> Tài liệu
+      </button>
+      <button class="nav-tab" data-tab="synthesize" onclick="switchTab('synthesize')">
+        <span class="tab-icon">🔮</span> Tổng hợp
+      </button>
+    </div>
+    <div class="nav-right">
+      <div class="api-status" id="apiStatus">
+        <span class="status-dot"></span>
+        <span class="status-text">Đang kết nối...</span>
+      </div>
+      <button class="btn-upload-nav" onclick="document.getElementById('pdfInput').click()">
+        ⬆ Upload PDF
+      </button>
+      <div class="user-avatar">HD</div>
+    </div>
+  </nav>
+
+  <!-- ══ MAIN CONTENT ════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ── TAB: CHAT ─────────────────────────────────────── -->
+    <div class="tab-content active" id="tab-chat">
+      <div class="bento-grid">
+
+        <!-- ── Left: Chat Panel (2-col span) ── -->
+        <div class="bento-card chat-panel" id="chatPanel">
+          <div class="chat-header">
+            <div class="chat-channel">
+              <span class="channel-hash">#</span>
+              <span class="channel-name">tài-nguyên</span>
+              <span class="channel-dot"></span>
+            </div>
+            <div class="chat-actions">
+              <button class="icon-btn" title="Tìm kiếm">🔍</button>
+            </div>
+          </div>
+
+          <div class="chat-messages" id="chatMessages">
+            <!-- Welcome message -->
+            <div class="message-group">
+              <div class="bot-avatar-wrap">
+                <div class="bot-avatar">⚡</div>
+              </div>
+              <div class="message-content">
+                <div class="message-author">
+                  VinAI Assistant
+                  <span class="bot-badge">BOT</span>
+                  <span class="message-time">Hôm nay</span>
+                </div>
+                <div class="message-text">
+                  Xin chào! Mình là <strong>VinAI Knowledge Assistant</strong> 👋<br/>
+                  Mình có thể giúp bạn:
+                  <ul class="welcome-list">
+                    <li>📄 <strong>Tóm tắt tài liệu</strong> — Upload PDF hoặc paste link</li>
+                    <li>🔍 <strong>Tìm kiếm kiến thức</strong> — Hỏi về nội dung khoá học</li>
+                    <li>🔮 <strong>Tổng hợp chat</strong> — Paste đoạn chat để phân tích</li>
+                  </ul>
+                  <div class="out-of-scope-note">
+                    ℹ️ Lưu ý: Mình <strong>không</strong> trả lời về deadline, điểm số hoặc logistics khoá học.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-bar">
+            <div class="chat-input-wrap">
+              <button class="attach-btn" onclick="document.getElementById('pdfInput').click()" title="Upload PDF">
+                📎
+              </button>
+              <input
+                type="text"
+                class="chat-input"
+                id="chatInput"
+                placeholder="Hỏi về tài liệu hoặc nhập câu hỏi..."
+                onkeydown="handleChatKey(event)"
+              />
+              <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <span>➤</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Right: Upload + KB ── -->
+        <div class="right-col">
+
+          <!-- Upload Card -->
+          <div class="bento-card upload-card" id="uploadCard">
+            <div class="card-title">Thêm Tài Liệu</div>
+            <div
+              class="dropzone"
+              id="dropzone"
+              ondragover="handleDragOver(event)"
+              ondrop="handleDrop(event)"
+              ondragleave="handleDragLeave(event)"
+              onclick="document.getElementById('pdfInput').click()"
+            >
+              <div class="dropzone-icon">☁</div>
+              <div class="dropzone-title">Kéo PDF vào đây</div>
+              <div class="dropzone-sub">hoặc click để chọn file</div>
+              <div class="dropzone-formats">PDF • Text • Slide</div>
+            </div>
+            <input type="file" id="pdfInput" accept=".pdf" hidden onchange="handleFileSelect(event)" />
+          </div>
+
+          <!-- Stats Row -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-number" id="statDocs">5</div>
+              <div class="stat-label">Tài liệu</div>
+            </div>
+            <div class="stat-card accent">
+              <div class="stat-number">94%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">2.1s</div>
+              <div class="stat-label">Avg speed</div>
+            </div>
+          </div>
+
+          <!-- Knowledge Base Card -->
+          <div class="bento-card kb-card" id="kbCard">
+            <div class="card-header-row">
+              <div class="card-title">Knowledge Base</div>
+              <div class="kb-count-badge" id="kbCount">0</div>
+            </div>
+            <div class="kb-list" id="kbList">
+              <div class="kb-loading">Đang tải...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: DOCUMENTS ─────────────────────────────────── -->
+    <div class="tab-content" id="tab-documents">
+      <div class="page-header">
+        <h2 class="page-title">📁 Tài Liệu Khoá Học</h2>
+        <p class="page-sub">Danh sách tài liệu đã được phân tích và lưu trong Knowledge Base</p>
+      </div>
+      <div class="docs-grid" id="docsGrid">
+        <div class="loading-state">Đang tải tài liệu...</div>
+      </div>
+    </div>
+
+    <!-- ── TAB: SYNTHESIZE ────────────────────────────────── -->
+    <div class="tab-content" id="tab-synthesize">
+      <div class="page-header">
+        <h2 class="page-title">🔮 Tổng Hợp Chat Discord</h2>
+        <p class="page-sub">Paste đoạn chat để AI phân tích chủ đề, câu hỏi phổ biến và điểm học viên đang stuck</p>
+      </div>
+      <div class="synthesize-layout">
+        <div class="synth-input-card bento-card">
+          <div class="card-title">Paste đoạn chat vào đây</div>
+          <textarea
+            class="synth-textarea"
+            id="synthInput"
+            placeholder="Dán nội dung chat Discord vào đây...&#10;&#10;Ví dụ:&#10;[10:00] Học viên A: Cho mình hỏi RAG và fine-tuning khác nhau như thế nào?&#10;[10:02] Tutor: RAG dùng khi cần update knowledge thường xuyên...&#10;[10:05] Học viên B: Vậy khi nào thì dùng fine-tuning hơn?"
+          ></textarea>
+          <div class="synth-actions">
+            <div class="char-count" id="charCount">0 ký tự</div>
+            <button class="btn-primary" onclick="synthesizeChat()">
+              🔮 Tổng hợp
+            </button>
+          </div>
+        </div>
+        <div class="synth-result-area" id="synthResult">
+          <div class="synth-placeholder">
+            <div class="synth-placeholder-icon">✨</div>
+            <div>Kết quả tổng hợp sẽ hiện ở đây</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══ ANALYSIS MODAL ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal" id="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ TOAST NOTIFICATIONS ═════════════════════════════════ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
