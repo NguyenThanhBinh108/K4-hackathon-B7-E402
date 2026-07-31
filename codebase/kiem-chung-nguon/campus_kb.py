@@ -48,6 +48,39 @@ def _toks(s: str) -> set[str]:
 _KB: list | None = None
 
 
+def _chuan_hoa(item: dict) -> dict:
+    """FIX-26: doc duoc CA HAI luoc do.
+
+    Ban cua Linh & Lieu (lay tu So tay hoc vien VinUni PDF chinh thuc) dung
+    khoa tieng Viet: tieu_de / noi_dung / nguon / do_tin_cay / loai_du_lieu.
+    Ban mo phong cu cua minh dung: topic / content / source_title.
+    Chuan hoa ve mot dang de phan con lai khong phai biet su khac biet nay.
+    """
+    if "noi_dung" in item or "tieu_de" in item:
+        return {
+            "id": item.get("id", "?"),
+            "topic": item.get("danh_muc") or item.get("tieu_de") or "?",
+            "content": item.get("noi_dung", ""),
+            "source_title": item.get("nguon", "?"),
+            "source_location": item.get("url_nguon") or item.get("pham_vi_ap_dung", ""),
+            "do_tin_cay": item.get("do_tin_cay", "?"),
+            "loai_du_lieu": item.get("loai_du_lieu", "?"),
+            "tham_quyen": item.get("tham_quyen", ""),
+            "_raw": item,
+        }
+    return {
+        "id": item.get("id", "?"),
+        "topic": item.get("topic", "?"),
+        "content": item.get("content", ""),
+        "source_title": item.get("source_title", "?"),
+        "source_location": item.get("source_location", ""),
+        "do_tin_cay": "C",
+        "loai_du_lieu": item.get("data_type", "mo_phong").upper(),
+        "tham_quyen": "",
+        "_raw": item,
+    }
+
+
 def load_kb() -> list:
     """Doc KB. Thieu file -> tra ve rong, KHONG lam chet bot (tinh nang campus
     tat, cac tinh nang khac van chay)."""
@@ -55,11 +88,54 @@ def load_kb() -> list:
     if _KB is None:
         try:
             with open(KB_PATH, "r", encoding="utf-8") as f:
-                _KB = json.load(f)
+                data = json.load(f)
+            raw = data.get("kb", []) if isinstance(data, dict) else list(data)
+            _KB = [_chuan_hoa(x) for x in raw]
         except Exception as e:
             print(f"[!] Khong nap duoc Campus KB ({KB_PATH}): {e}", file=sys.stderr)
             _KB = []
     return _KB
+
+
+# Uu tien khi hai muc cung khop: du lieu THAT tu So tay chinh thuc phai thang
+# du lieu mo phong cua nhom. CHUA_CO xep duoi cung nhung KHONG bo — no chinh
+# la cau tra loi dung cho nhung cau khoa chua co thong tin.
+#
+# He so phai NHO. Do lan dau voi 2.0: cau "trua nay toi muon di an" tra ve
+# CT-07 (thoi luong chuong trinh) thay vi muc an uong, va "vang may buoi thi bi
+# loai" bo qua 7 muc Chuyen can THAT. Boost manh khong phai uu tien nguon —
+# no la lam hong do lien quan. 1.15 chi du de pha hoa khi diem xap xi nhau.
+_UU_TIEN = {"THAT": 1.15, "MO_PHONG": 1.0, "CHUA_CO": 0.95}
+
+
+# FIX-27: dong nghia tieng Viet — do duoc, khong doan.
+# Cau "vang may buoi thi bi loai" KHONG khop 7 muc Chuyen can (THAT) vi So tay
+# viet la "nghi" chu khong phai "vang", nen no roi xuong muc An uong mo phong.
+# Day dung la lo hong bag-of-words da ghi nhan trong knowledge_index. Chi map
+# nhung cap THAT SU gap trong data, khong bia them cho du.
+_DONG_NGHIA = {
+    "vang": ["nghi"], "nghi": ["vang"],
+    "hoc bong": ["tro cap"], "tro cap": ["hoc bong", "sinh hoat phi"],
+    "hoc phi": ["chi phi", "tro cap"],
+    "diem danh": ["chuyen can", "nghi"], "chuyen can": ["diem danh", "nghi"],
+    "duoi hoc": ["loai", "khong hoan thanh"], "loai": ["duoi hoc"],
+    "an": ["cang tin", "an uong"], "cang tin": ["an uong"],
+    "do xe": ["gui xe", "bai xe"], "gui xe": ["do xe", "bai xe"],
+    "mang": ["wifi"], "wifi": ["mang"],
+    "nop bai": ["deadline", "han nop"], "han nop": ["nop bai", "deadline"],
+}
+
+
+def _mo_rong(q: set[str]) -> set[str]:
+    """Them tu dong nghia vao tap tu khoa truy van (khong thay the)."""
+    out = set(q)
+    for t in q:
+        out.update(_DONG_NGHIA.get(t, []))
+    joined = " ".join(sorted(q))
+    for cum, dn in _DONG_NGHIA.items():
+        if " " in cum and cum in joined:
+            out.update(dn)
+    return {w for x in out for w in x.split()}
 
 
 def search(query: str, k: int = 4) -> list[dict]:
@@ -68,17 +144,16 @@ def search(query: str, k: int = 4) -> list[dict]:
     kb = load_kb()
     if not kb:
         return []
-    q = _toks(query)
+    q = _mo_rong(_toks(query))
     if not q:
         return []
     scored = []
     for item in kb:
-        hay = _toks(
-            f"{item.get('topic','')} {item.get('content','')} {item.get('source_title','')}"
-        )
+        hay = _toks(f"{item['topic']} {item['content']} {item['source_title']}")
         hit = len(q & hay)
         if hit:
-            scored.append((hit / len(q), hit, item))
+            base = hit / len(q)
+            scored.append((base * _UU_TIEN.get(item["loai_du_lieu"], 1.0), hit, item))
     scored.sort(key=lambda x: (-x[0], -x[1]))
     return [it for score, _h, it in scored[:k] if score >= 0.12]
 
@@ -88,10 +163,16 @@ def format_for_prompt(items: list[dict]) -> str:
         return "khong tim thay muc nao"
     out = []
     for it in items:
+        loai = it.get("loai_du_lieu", "?")
+        canh_bao = ""
+        if loai == "MO_PHONG":
+            canh_bao = " ⚠ DU LIEU MO PHONG, chua doi chieu phong hanh chinh"
+        elif loai == "CHUA_CO":
+            canh_bao = " ⚠ KHOA CHUA CO THONG TIN NAY — phai noi ro va chuyen nguoi phu trach"
         out.append(
             f"- [{it.get('id','?')}] (chu de: {it.get('topic','?')} · nguon: "
-            f"{it.get('source_title','?')} — {it.get('source_location','?')} · "
-            f"cap nhat {it.get('last_updated','?')}) {it.get('content','')[:320]}"
+            f"{it.get('source_title','?')} · do tin cay {it.get('do_tin_cay','?')}"
+            f"{canh_bao}) {it.get('content','')[:320]}"
         )
     return "\n".join(out)
 
