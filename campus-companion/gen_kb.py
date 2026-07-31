@@ -134,6 +134,65 @@ ENTRIES = [
      "Trang phục gọn gàng, lịch sự khi lên lớp và vào thư viện. Phòng lab yêu cầu đi giày kín mũi. Sự kiện có quy định riêng sẽ ghi rõ trong thông báo của sự kiện đó."),
     ("event_booking", "campus_general", "Campus Guide - Su dung khong gian", "Campus Guide, muc Khong gian chung",
      "Mượn phòng hoặc không gian chung cho hoạt động nhóm ngoài giờ học phải đăng ký trước qua phòng hành chính tầng 1 Toà A, ít nhất 2 ngày làm việc, kèm danh sách người tham gia."),
+
+    # ================= BO SUNG DOT 2 =================
+    # ---------------- AN UONG (chi tiet hon) ----------------
+    ("lunch", "campus_general", "Campus Guide - An uong", "Campus Guide, muc An uong, tr.4",
+     "Căng tin Toà D có quầy chay ở vị trí trong cùng bên trái, phục vụ 11:00-13:30. Suất chay 30.000-40.000đ. Ngày lễ và cuối tuần quầy chay không mở."),
+    ("lunch", "campus_general", "Campus Guide - An uong", "Campus Guide, muc An uong, tr.4",
+     "Nạp tiền vào thẻ học viên để thanh toán tại căng tin: máy nạp đặt cạnh quầy thu ngân tầng 1 Toà D và tại phòng hành chính tầng 1 Toà A. Nạp tối thiểu 50.000đ, không hoàn lại tiền trong thẻ khi chưa dùng hết."),
+    ("water", "campus_general", "Campus Guide - Tien ich", "Campus Guide, muc Tien ich, tr.10",
+     "Cây nước lọc nóng-lạnh đặt ở hành lang gần thang máy mỗi tầng của cả bốn toà. Mang bình cá nhân để dùng; không có cốc giấy dùng một lần."),
+
+    # ---------------- HOC TAP ----------------
+    ("library_service", "campus_general", "Thong tin thu vien", "Trang thu vien, muc Dich vu",
+     "Thư viện cho mượn laptop dùng tại chỗ, đăng ký tại quầy tầng 3 Toà A, trả trong ngày. Số lượng có hạn, ưu tiên theo thứ tự đăng ký, cần để lại thẻ học viên."),
+    ("library_service", "campus_general", "Thong tin thu vien", "Trang thu vien, muc Ho tro",
+     "Cần tìm tài liệu học thuật hoặc hướng dẫn tra cứu cơ sở dữ liệu, đặt lịch với thủ thư tại quầy tầng 3 Toà A hoặc để lại yêu cầu; thường được hỗ trợ trong 1-2 ngày làm việc."),
+    ("locker", "campus_general", "Campus Guide - Tien ich", "Campus Guide, muc Tien ich, tr.11",
+     "Tủ khoá cá nhân đặt ở hành lang tầng 1 Toà B, dùng theo ngày, tự mang khoá. Không để đồ qua đêm — đồ để lại sau 22:00 sẽ được chuyển về quầy đồ thất lạc tầng 1 Toà A."),
+    ("scanner", "campus_general", "Campus Guide - In an", "Campus Guide, muc Dich vu, tr.11",
+     "Máy scan đặt cạnh máy in tầng 2 Toà A. Scan miễn phí, file gửi về email trường của người dùng. Không scan được tài liệu khổ lớn hơn A3."),
+
+    # ---------------- LOP HOC ----------------
+    ("classroom_checkin", "course_specific", "Handbook AI Thuc Chien - Phong hoc", "Handbook, muc Phong hoc va check-in",
+     "Quẹt thẻ không nhận ở đầu đọc cửa phòng: thử lại một lần, nếu vẫn không được thì báo Lab Coach ngay tại chỗ để được điểm danh thủ công. Đừng bỏ qua rồi báo sau buổi học."),
+    ("makeup_class", "course_specific", "Handbook AI Thuc Chien - Hoc bu", "Handbook, muc Hoc bu",
+     "Vắng buổi có lý do chính đáng thì xem recording trong #resources và làm bài của buổi đó theo hạn chung. Học bù trực tiếp chỉ tổ chức khi có thông báo riêng của khoá, không phải mặc định."),
+    ("group_work", "course_specific", "Handbook AI Thuc Chien - Lam nhom", "Handbook, muc Lam viec nhom",
+     "Nhóm 4-5 người, tự lập nhóm trong buổi đầu. Đổi nhóm sau khi đã chốt phải được Lab Coach đồng ý. Mỗi thành viên nộp riêng phần của mình, cả nhóm dùng chung một link repo."),
+    ("deadline", "course_specific", "Handbook AI Thuc Chien - Nop bai", "Handbook, muc Nop bai va han",
+     "Hạn nộp của từng mốc luôn được đăng trong #announcements kèm link nộp. Nộp muộn một mốc thì mốc đó không được tính điểm nộp. Trợ lý không tự xác nhận hạn cụ thể theo ngày — xem thông báo mới nhất."),
+    ("grading", "course_specific", "Handbook AI Thuc Chien - Cham diem", "Handbook, muc Danh gia",
+     "Điểm gồm phần nộp đúng hạn theo mốc và phần chấm trên bài nộp cuối. Chi tiết thang điểm nằm trong tài liệu rubric ở #resources. Thắc mắc về điểm cá nhân thì nhắn riêng Lab Coach, không hỏi ở kênh chung."),
+
+    # ---------------- KY THUAT ----------------
+    ("account", "course_specific", "Handbook AI Thuc Chien - Tai khoan", "Handbook, muc Tai khoan",
+     "Tài khoản học trên nền tảng của khoá dùng email trường. Quên mật khẩu thì dùng chức năng khôi phục trên trang đăng nhập; không khôi phục được thì nhắn #lab-support kèm mã học viên, đừng gửi mật khẩu cho ai."),
+    ("device", "course_specific", "Handbook AI Thuc Chien - Thiet bi", "Handbook, muc Chuan bi",
+     "Học viên tự mang laptop. Yêu cầu tối thiểu và danh sách phần mềm cần cài được đăng trong #resources trước buổi đầu. Không có laptop thì đăng ký mượn máy trạm phòng lab tầng 3 Toà B qua Lab Coach."),
+    ("software", "course_specific", "Handbook AI Thuc Chien - Cong cu", "Handbook, muc Cong cu",
+     "Danh sách công cụ dùng trong khoá và hướng dẫn cài đặt nằm ở #resources. Gặp lỗi cài đặt thì đăng vào #lab-support kèm ảnh chụp lỗi và hệ điều hành đang dùng — mô tả suông thường phải hỏi lại nhiều lượt."),
+
+    # ---------------- HANH CHINH ----------------
+    ("certificate", "course_specific", "Handbook AI Thuc Chien - Chung nhan", "Handbook, muc Ket thuc khoa",
+     "Chứng nhận hoàn thành cấp sau khi kết thúc khoá, điều kiện gồm số buổi tham dự tối thiểu và hoàn thành bài nộp cuối. Thời điểm và cách nhận được thông báo trong #announcements ở tuần cuối."),
+    ("leave_request", "course_specific", "Handbook AI Thuc Chien - Nghi phep", "Handbook, muc Diem danh",
+     "Xin nghỉ báo trước cho Lab Coach qua #lab-support, nêu buổi nghỉ và lý do. Báo trước giờ học được ghi nhận là nghỉ có phép; báo sau buổi học thì tính theo trường hợp vắng."),
+    ("contact_admin", "campus_general", "Campus Guide - Lien he", "Campus Guide, muc Lien he, tr.16",
+     "Phòng hành chính ở tầng 1 Toà A, phòng 101, làm việc 08:00-17:00 các ngày trong tuần, nghỉ trưa 12:00-13:00. Việc liên quan thẻ, đơn từ, đăng ký chỗ đỗ xe đều xử lý ở đây."),
+    ("feedback", "course_specific", "Handbook AI Thuc Chien - Gop y", "Handbook, muc Phan hoi",
+     "Góp ý về nội dung hoặc cách tổ chức khoá gửi qua form phản hồi đăng trong #announcements cuối mỗi giai đoạn, hoặc nhắn riêng Lab Coach. Góp ý ẩn danh được chấp nhận qua form."),
+
+    # ---------------- AN TOAN & KHAC ----------------
+    ("smoking", "campus_general", "Campus Guide - Quy dinh chung", "Campus Guide, muc Quy dinh, tr.2",
+     "Toàn bộ khu vực trong nhà cấm hút thuốc, gồm cả thuốc lá điện tử. Khu vực được phép hút nằm ngoài trời phía sau Toà C, có biển chỉ dẫn."),
+    ("noise", "campus_general", "Campus Guide - Quy dinh chung", "Campus Guide, muc Quy dinh",
+     "Gọi điện và họp trực tuyến ở hành lang hoặc khu sofa tầng 1 Toà A, không gọi trong thư viện và phòng học. Sau 21:00 giữ yên tĩnh ở toàn bộ khu vực trong nhà."),
+    ("weather", "campus_general", "Campus Guide - Tinh huong bat thuong", "Campus Guide, muc An toan, tr.15",
+     "Thời tiết xấu hoặc sự cố khiến lịch học thay đổi thì thông báo được đăng trong #announcements và dán tại sảnh tầng 1 các toà. Không có thông báo nghĩa là lịch giữ nguyên."),
+    ("visitor_parking", "campus_general", "Campus Guide - Gui xe", "Campus Guide, muc Di lai, tr.12",
+     "Khách đến trường gửi xe tại bãi khách phía trước cổng chính, lấy vé tại chốt bảo vệ. Bãi hầm B1 Toà C chỉ dành cho học viên và cán bộ có thẻ."),
 ]
 
 

@@ -388,5 +388,235 @@
     "last_updated": "2026-07-31",
     "data_type": "mo_phong",
     "content": "Mượn phòng hoặc không gian chung cho hoạt động nhóm ngoài giờ học phải đăng ký trước qua phòng hành chính tầng 1 Toà A, ít nhất 2 ngày làm việc, kèm danh sách người tham gia."
+  },
+  {
+    "id": "campus_lunch_004",
+    "scope": "campus_general",
+    "topic": "lunch",
+    "source_title": "Campus Guide - An uong",
+    "source_location": "Campus Guide, muc An uong, tr.4",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Căng tin Toà D có quầy chay ở vị trí trong cùng bên trái, phục vụ 11:00-13:30. Suất chay 30.000-40.000đ. Ngày lễ và cuối tuần quầy chay không mở."
+  },
+  {
+    "id": "campus_lunch_005",
+    "scope": "campus_general",
+    "topic": "lunch",
+    "source_title": "Campus Guide - An uong",
+    "source_location": "Campus Guide, muc An uong, tr.4",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Nạp tiền vào thẻ học viên để thanh toán tại căng tin: máy nạp đặt cạnh quầy thu ngân tầng 1 Toà D và tại phòng hành chính tầng 1 Toà A. Nạp tối thiểu 50.000đ, không hoàn lại tiền trong thẻ khi chưa dùng hết."
+  },
+  {
+    "id": "campus_water_001",
+    "scope": "campus_general",
+    "topic": "water",
+    "source_title": "Campus Guide - Tien ich",
+    "source_location": "Campus Guide, muc Tien ich, tr.10",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Cây nước lọc nóng-lạnh đặt ở hành lang gần thang máy mỗi tầng của cả bốn toà. Mang bình cá nhân để dùng; không có cốc giấy dùng một lần."
+  },
+  {
+    "id": "campus_library_service_001",
+    "scope": "campus_general",
+    "topic": "library_service",
+    "source_title": "Thong tin thu vien",
+    "source_location": "Trang thu vien, muc Dich vu",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Thư viện cho mượn laptop dùng tại chỗ, đăng ký tại quầy tầng 3 Toà A, trả trong ngày. Số lượng có hạn, ưu tiên theo thứ tự đăng ký, cần để lại thẻ học viên."
+  },
+  {
+    "id": "campus_library_service_002",
+    "scope": "campus_general",
+    "topic": "library_service",
+    "source_title": "Thong tin thu vien",
+    "source_location": "Trang thu vien, muc Ho tro",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Cần tìm tài liệu học thuật hoặc hướng dẫn tra cứu cơ sở dữ liệu, đặt lịch với thủ thư tại quầy tầng 3 Toà A hoặc để lại yêu cầu; thường được hỗ trợ trong 1-2 ngày làm việc."
+  },
+  {
+    "id": "campus_locker_001",
+    "scope": "campus_general",
+    "topic": "locker",
+    "source_title": "Campus Guide - Tien ich",
+    "source_location": "Campus Guide, muc Tien ich, tr.11",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Tủ khoá cá nhân đặt ở hành lang tầng 1 Toà B, dùng theo ngày, tự mang khoá. Không để đồ qua đêm — đồ để lại sau 22:00 sẽ được chuyển về quầy đồ thất lạc tầng 1 Toà A."
+  },
+  {
+    "id": "campus_scanner_001",
+    "scope": "campus_general",
+    "topic": "scanner",
+    "source_title": "Campus Guide - In an",
+    "source_location": "Campus Guide, muc Dich vu, tr.11",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Máy scan đặt cạnh máy in tầng 2 Toà A. Scan miễn phí, file gửi về email trường của người dùng. Không scan được tài liệu khổ lớn hơn A3."
+  },
+  {
+    "id": "campus_classroom_checkin_003",
+    "scope": "course_specific",
+    "topic": "classroom_checkin",
+    "source_title": "Handbook AI Thuc Chien - Phong hoc",
+    "source_location": "Handbook, muc Phong hoc va check-in",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Quẹt thẻ không nhận ở đầu đọc cửa phòng: thử lại một lần, nếu vẫn không được thì báo Lab Coach ngay tại chỗ để được điểm danh thủ công. Đừng bỏ qua rồi báo sau buổi học."
+  },
+  {
+    "id": "campus_makeup_class_001",
+    "scope": "course_specific",
+    "topic": "makeup_class",
+    "source_title": "Handbook AI Thuc Chien - Hoc bu",
+    "source_location": "Handbook, muc Hoc bu",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Vắng buổi có lý do chính đáng thì xem recording trong #resources và làm bài của buổi đó theo hạn chung. Học bù trực tiếp chỉ tổ chức khi có thông báo riêng của khoá, không phải mặc định."
+  },
+  {
+    "id": "campus_group_work_001",
+    "scope": "course_specific",
+    "topic": "group_work",
+    "source_title": "Handbook AI Thuc Chien - Lam nhom",
+    "source_location": "Handbook, muc Lam viec nhom",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Nhóm 4-5 người, tự lập nhóm trong buổi đầu. Đổi nhóm sau khi đã chốt phải được Lab Coach đồng ý. Mỗi thành viên nộp riêng phần của mình, cả nhóm dùng chung một link repo."
+  },
+  {
+    "id": "campus_deadline_001",
+    "scope": "course_specific",
+    "topic": "deadline",
+    "source_title": "Handbook AI Thuc Chien - Nop bai",
+    "source_location": "Handbook, muc Nop bai va han",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Hạn nộp của từng mốc luôn được đăng trong #announcements kèm link nộp. Nộp muộn một mốc thì mốc đó không được tính điểm nộp. Trợ lý không tự xác nhận hạn cụ thể theo ngày — xem thông báo mới nhất."
+  },
+  {
+    "id": "campus_grading_001",
+    "scope": "course_specific",
+    "topic": "grading",
+    "source_title": "Handbook AI Thuc Chien - Cham diem",
+    "source_location": "Handbook, muc Danh gia",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Điểm gồm phần nộp đúng hạn theo mốc và phần chấm trên bài nộp cuối. Chi tiết thang điểm nằm trong tài liệu rubric ở #resources. Thắc mắc về điểm cá nhân thì nhắn riêng Lab Coach, không hỏi ở kênh chung."
+  },
+  {
+    "id": "campus_account_001",
+    "scope": "course_specific",
+    "topic": "account",
+    "source_title": "Handbook AI Thuc Chien - Tai khoan",
+    "source_location": "Handbook, muc Tai khoan",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Tài khoản học trên nền tảng của khoá dùng email trường. Quên mật khẩu thì dùng chức năng khôi phục trên trang đăng nhập; không khôi phục được thì nhắn #lab-support kèm mã học viên, đừng gửi mật khẩu cho ai."
+  },
+  {
+    "id": "campus_device_001",
+    "scope": "course_specific",
+    "topic": "device",
+    "source_title": "Handbook AI Thuc Chien - Thiet bi",
+    "source_location": "Handbook, muc Chuan bi",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Học viên tự mang laptop. Yêu cầu tối thiểu và danh sách phần mềm cần cài được đăng trong #resources trước buổi đầu. Không có laptop thì đăng ký mượn máy trạm phòng lab tầng 3 Toà B qua Lab Coach."
+  },
+  {
+    "id": "campus_software_001",
+    "scope": "course_specific",
+    "topic": "software",
+    "source_title": "Handbook AI Thuc Chien - Cong cu",
+    "source_location": "Handbook, muc Cong cu",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Danh sách công cụ dùng trong khoá và hướng dẫn cài đặt nằm ở #resources. Gặp lỗi cài đặt thì đăng vào #lab-support kèm ảnh chụp lỗi và hệ điều hành đang dùng — mô tả suông thường phải hỏi lại nhiều lượt."
+  },
+  {
+    "id": "campus_certificate_001",
+    "scope": "course_specific",
+    "topic": "certificate",
+    "source_title": "Handbook AI Thuc Chien - Chung nhan",
+    "source_location": "Handbook, muc Ket thuc khoa",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Chứng nhận hoàn thành cấp sau khi kết thúc khoá, điều kiện gồm số buổi tham dự tối thiểu và hoàn thành bài nộp cuối. Thời điểm và cách nhận được thông báo trong #announcements ở tuần cuối."
+  },
+  {
+    "id": "campus_leave_request_001",
+    "scope": "course_specific",
+    "topic": "leave_request",
+    "source_title": "Handbook AI Thuc Chien - Nghi phep",
+    "source_location": "Handbook, muc Diem danh",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Xin nghỉ báo trước cho Lab Coach qua #lab-support, nêu buổi nghỉ và lý do. Báo trước giờ học được ghi nhận là nghỉ có phép; báo sau buổi học thì tính theo trường hợp vắng."
+  },
+  {
+    "id": "campus_contact_admin_001",
+    "scope": "campus_general",
+    "topic": "contact_admin",
+    "source_title": "Campus Guide - Lien he",
+    "source_location": "Campus Guide, muc Lien he, tr.16",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Phòng hành chính ở tầng 1 Toà A, phòng 101, làm việc 08:00-17:00 các ngày trong tuần, nghỉ trưa 12:00-13:00. Việc liên quan thẻ, đơn từ, đăng ký chỗ đỗ xe đều xử lý ở đây."
+  },
+  {
+    "id": "campus_feedback_001",
+    "scope": "course_specific",
+    "topic": "feedback",
+    "source_title": "Handbook AI Thuc Chien - Gop y",
+    "source_location": "Handbook, muc Phan hoi",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Góp ý về nội dung hoặc cách tổ chức khoá gửi qua form phản hồi đăng trong #announcements cuối mỗi giai đoạn, hoặc nhắn riêng Lab Coach. Góp ý ẩn danh được chấp nhận qua form."
+  },
+  {
+    "id": "campus_smoking_001",
+    "scope": "campus_general",
+    "topic": "smoking",
+    "source_title": "Campus Guide - Quy dinh chung",
+    "source_location": "Campus Guide, muc Quy dinh, tr.2",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Toàn bộ khu vực trong nhà cấm hút thuốc, gồm cả thuốc lá điện tử. Khu vực được phép hút nằm ngoài trời phía sau Toà C, có biển chỉ dẫn."
+  },
+  {
+    "id": "campus_noise_001",
+    "scope": "campus_general",
+    "topic": "noise",
+    "source_title": "Campus Guide - Quy dinh chung",
+    "source_location": "Campus Guide, muc Quy dinh",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Gọi điện và họp trực tuyến ở hành lang hoặc khu sofa tầng 1 Toà A, không gọi trong thư viện và phòng học. Sau 21:00 giữ yên tĩnh ở toàn bộ khu vực trong nhà."
+  },
+  {
+    "id": "campus_weather_001",
+    "scope": "campus_general",
+    "topic": "weather",
+    "source_title": "Campus Guide - Tinh huong bat thuong",
+    "source_location": "Campus Guide, muc An toan, tr.15",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Thời tiết xấu hoặc sự cố khiến lịch học thay đổi thì thông báo được đăng trong #announcements và dán tại sảnh tầng 1 các toà. Không có thông báo nghĩa là lịch giữ nguyên."
+  },
+  {
+    "id": "campus_visitor_parking_001",
+    "scope": "campus_general",
+    "topic": "visitor_parking",
+    "source_title": "Campus Guide - Gui xe",
+    "source_location": "Campus Guide, muc Di lai, tr.12",
+    "last_updated": "2026-07-31",
+    "data_type": "mo_phong",
+    "content": "Khách đến trường gửi xe tại bãi khách phía trước cổng chính, lấy vé tại chốt bảo vệ. Bãi hầm B1 Toà C chỉ dành cho học viên và cán bộ có thẻ."
   }
 ]

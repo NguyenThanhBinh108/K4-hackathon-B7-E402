@@ -133,6 +133,107 @@ FAQ = [
   ["zero shot one shot few shot", "cot la gi"],
   None,
   "Phần này xuất hiện trên slide bài giảng nhưng chưa có đoạn giảng chi tiết trong transcript được cấp. Trợ lý chỉ nêu tên các khái niệm, không tự diễn giải sâu. Hỏi Lab Coach để được giải thích đầy đủ."),
+
+ # ===== Bo sung dot 2 — chon theo so luot hoi THAT trong chatlog =====
+ ("chatbot", "Làm chatbot cho doanh nghiệp thì bắt đầu từ đâu?",
+  ["lam chatbot bat dau tu dau", "xay dung ai chatbot support"],
+  "chatbot support bài toán mơ hồ",
+  "Bắt đầu từ việc xác định chatbot giải bài toán gì, cho ai, thay thế cách làm nào — không bắt đầu từ công nghệ. Yêu cầu kiểu 'làm một AI chatbot support' là đề bài mơ hồ; phải bóc ra thành công việc cụ thể của một vai cụ thể thì mới triển khai và đo được."),
+
+ ("tool", "Tool calling là gì? Khi nào cho model gọi tool?",
+  ["tool calling la gi", "function calling la gi", "cho model goi tool khi nao"],
+  "tool agent gọi công cụ",
+  "Tool calling là cho model quyền gọi một hàm/API bên ngoài thay vì tự bịa kết quả — ví dụ tra cơ sở dữ liệu, tính toán, gửi truy vấn. Dùng khi câu trả lời cần dữ liệu model không có sẵn hoặc cần độ chính xác mà sinh chữ không đảm bảo. Mỗi tool thêm vào là thêm một chỗ có thể hỏng, nên chỉ thêm khi thật cần."),
+
+ ("eval", "Đánh giá một sản phẩm AI thì đo bằng gì?",
+  ["eval la gi", "danh gia san pham ai", "do chat luong ai"],
+  "đánh giá quality bar golden set",
+  "Không đo bằng cảm giác. Cách làm: chạy tay 10-20 đầu vào, đọc từng đầu ra, đặt tên cho từng loại lỗi thấy được, biến mỗi loại thành một tiêu chí kiểm chứng được (người ngoài chấm ra cùng kết quả), rồi mới xây bộ case và chốt ngưỡng đạt bằng con số trước khi đo."),
+
+ ("guard", "Làm sao chặn model trả lời bậy hoặc ra ngoài phạm vi?",
+  ["chan model tra loi bay", "gioi han pham vi tra loi"],
+  "guardrail giới hạn phạm vi an toàn",
+  "Ba lớp: chặn ở đầu vào (loại yêu cầu ngoài phạm vi trước khi gọi model), ràng buộc trong prompt (nêu rõ được làm gì, không được làm gì), và kiểm ở đầu ra (đối chiếu với nguồn, từ chối khi không có căn cứ). Lớp bằng luật cứng kiểm chứng dễ hơn lớp chỉ dựa vào nhắc nhở trong prompt."),
+
+ ("memory", "Memory trong agent là gì?",
+  ["memory la gi", "agent nho hoi thoai truoc"],
+  "memory ngữ cảnh hội thoại",
+  "Model không tự nhớ giữa các lượt gọi — mọi thứ nó 'nhớ' đều phải được đưa lại vào ngữ cảnh. Memory là cơ chế lưu và chọn lại phần đáng nhớ để nhét vào lượt sau. Vì context window có hạn nên phải chọn lọc, không thể nhét toàn bộ lịch sử."),
+
+ ("latency", "Làm sao giảm độ trễ khi gọi LLM?",
+  ["giam latency", "goi llm cham qua"],
+  "độ trễ tốc độ phản hồi",
+  "Vài hướng thường dùng: chọn model nhỏ hơn cho bước dễ, rút ngắn prompt và phần ngữ cảnh đưa vào, chạy song song các bước độc lập, hiển thị dần kết quả thay vì chờ trọn câu trả lời, và lưu lại kết quả cho câu hỏi lặp. Đo trước khi tối ưu để biết chỗ nào thật sự chậm."),
+
+ ("routing", "Routing là gì trong thiết kế workflow?",
+  ["routing la gi", "phan loai roi chuyen nhanh"],
+  "routing phân loại nhánh workflow",
+  "Routing là bước phân loại đầu vào rồi đưa vào nhánh xử lý phù hợp, thay vì dùng một đường chung cho mọi loại. Ưu điểm là mỗi nhánh tối ưu riêng được và đoán trước được hành vi; nhược điểm là phân loại sai thì cả nhánh sau sai theo, nên bước phân loại phải được đo riêng."),
+
+ ("structured output", "Làm sao bắt model trả về JSON đúng định dạng?",
+  ["structured output", "bat model tra ve json", "schema dau ra"],
+  "định dạng đầu ra JSON schema",
+  "Nêu rõ schema trong prompt kèm ví dụ, và dùng chế độ ép định dạng của nhà cung cấp nếu có. Quan trọng không kém: phía code phải chịu được đầu ra hỏng — model có thể trả JSON bị cắt giữa chừng hoặc kèm chữ thừa, nên luôn bọc bước phân tích trong xử lý lỗi và thử lại, đừng để một câu trả lời hỏng làm chết cả luồng."),
+
+ ("fallback", "Khi AI không chắc thì nên làm gì?",
+  ["khi ai khong chac", "fallback la gi", "chuyen nguoi that"],
+  "không chắc thu hẹp phạm vi",
+  "Không đoán liều. Ba đường lui theo mức độ: hỏi lại một câu để làm rõ, trả lời kèm giới hạn và nói rõ chỗ chưa chắc, hoặc từ chối và chuyển cho người có thẩm quyền. Chọn đường nào phụ thuộc cost-of-error — sai càng đắt thì càng phải nghiêng về chuyển người."),
+
+ ("cost", "Chi phí gọi LLM tính thế nào, làm sao giảm?",
+  ["chi phi goi llm", "token cost", "giam chi phi ai"],
+  "chi phí token",
+  "Chi phí tính theo token vào và token ra, nên prompt dài và câu trả lời dài đều tốn. Cách giảm: cắt phần ngữ cảnh không cần, dùng model nhỏ cho bước đơn giản, lưu lại kết quả câu hỏi lặp, và giới hạn độ dài đầu ra. Đo lượng token thật trước khi tối ưu."),
+
+ ("mvp", "MVP trong sản phẩm AI nên gồm những gì?",
+  ["mvp la gi", "lam mvp the nao"],
+  "MVP lát cắt nhỏ nhất",
+  "Một lát cắt đủ hẹp để chạy hết từ đầu đến cuối: một người dùng, một công việc, một quyết định AI, một kết quả. Đủ để đo xem quyết định AI đó có đúng không. Không phải bản rút gọn của toàn bộ sản phẩm, mà là một đường xuyên suốt mỏng nhất còn tạo ra giá trị."),
+
+ ("intent", "Nhận diện intent để làm gì?",
+  ["intent la gi", "phan loai y dinh nguoi dung"],
+  "intent phân loại ý định",
+  "Để trả lời đúng cỡ và đúng kiểu. Cùng một khung trả lời cho mọi loại câu hỏi sẽ sai với phần lớn: người chào hỏi, người hỏi bài, người hỏi thủ tục cần ba cách đáp khác nhau. Phân loại sai thì mọi bước sau sai theo, nên bước này phải có bộ case đo riêng."),
+
+ ("privacy", "Đưa dữ liệu người dùng vào API AI có vấn đề gì?",
+  ["gui data nguoi dung cho ai", "privacy khi dung api"],
+  "bảo mật dữ liệu quy định",
+  "Có ba thứ phải cân: nhà cung cấp có dùng dữ liệu để huấn luyện không (free tier thường có), dữ liệu có chứa thông tin cá nhân không, và người bị thu thập có biết không. Nguyên tắc an toàn: chỉ gửi phần tối thiểu cần cho việc đang làm, và không gửi dữ liệu thật của người thật khi chưa được phép."),
+
+ ("monitoring", "Sau khi đưa sản phẩm AI vào dùng thì theo dõi gì?",
+  ["theo doi san pham ai", "monitoring sau khi deploy"],
+  "theo dõi đo lường sau triển khai",
+  "Theo dõi tỷ lệ từ chối và chuyển người, tỷ lệ người dùng phản hồi tiêu cực, các câu hỏi hệ thống không trả lời được (đây là nguồn để mở rộng), độ trễ và chi phí. Quan trọng nhất là giữ được đường đi từ một câu trả lời tệ ngược về đúng nguồn và bước đã sinh ra nó."),
+
+ ("bias", "Model có thiên lệch không? Xử lý thế nào?",
+  ["bias trong model", "thien lech du lieu"],
+  "thiên lệch dữ liệu huấn luyện",
+  "Model học từ dữ liệu nên mang theo thiên lệch của dữ liệu đó. Không có cách xoá sạch; cách làm thực tế là biết mình đang dùng nó cho ai, kiểm thử riêng trên các nhóm dễ bị thiệt, và không dùng model một mình cho quyết định ảnh hưởng trực tiếp tới quyền lợi con người."),
+
+ ("dataset", "Cần bao nhiêu dữ liệu để làm sản phẩm AI?",
+  ["can bao nhieu du lieu", "dataset bao nhieu la du"],
+  "dữ liệu chất lượng số lượng",
+  "Với sản phẩm dựa trên model có sẵn, thứ cần không phải khối lượng dữ liệu huấn luyện mà là một bộ case đủ tốt để đo — vài chục case có nhãn đúng và phủ được các tình huống khó còn giá trị hơn hàng nghìn case dễ. Chỉ khi fine-tune mới cần dữ liệu quy mô lớn và chất lượng đồng đều."),
+
+ ("stakeholder", "Sếp giao đề bài mơ hồ thì làm sao?",
+  ["sep giao de bai mo ho", "yeu cau chung chung"],
+  "yêu cầu mơ hồ bóc tách bài toán",
+  "Đừng nhảy thẳng vào giải pháp. Hỏi lại để biết ai dùng, dùng lúc nào, hiện đang làm bằng cách gì và chỗ nào đang hỏng. Nếu người giao đề chưa rõ thì thử đưa một bản cụ thể để họ phản biện — thường phản biện trên một bản nháp cụ thể dễ hơn nhiều so với mô tả trừu tượng."),
+
+ ("kpi", "Chọn chỉ số thành công cho sản phẩm AI thế nào?",
+  ["chi so thanh cong", "kpi cho san pham ai"],
+  "chỉ số thành công đo lường",
+  "Chỉ số phải gắn với công việc của người dùng, không gắn với hoạt động của model. 'Số câu AI trả lời' không nói lên gì; 'tỷ lệ câu người dùng không phải hỏi lại người thật' thì có. Chọn chỉ số mà khi nó tăng, người dùng thật sự đỡ vất vả hơn."),
+
+ ("mcp", "MCP là gì?",
+  ["mcp la gi", "model context protocol"],
+  None,
+  "Chủ đề này chưa có trong tài liệu và transcript được cấp của khoá. Trợ lý không tự giải thích để tránh nói sai — đây cũng là loại claim học viên hay nhầm nguồn gốc. Hỏi Lab Coach hoặc đọc tài liệu chính thức của giao thức."),
+
+ ("prompt injection", "Prompt injection là gì? Chặn thế nào?",
+  ["prompt injection", "jailbreak", "bi lua lo system prompt"],
+  None,
+  "Chủ đề này chưa có đoạn giảng trong tài liệu được cấp. Nguyên tắc chung mà sản phẩm này đang áp dụng: không bao giờ hiển thị hoặc sửa system prompt, khoá kiến thức, khoá cấu hình theo yêu cầu người dùng, và mọi yêu cầu kiểu đó đều chuyển người phụ trách. Chi tiết sâu hơn hỏi Lab Coach."),
 ]
 
 

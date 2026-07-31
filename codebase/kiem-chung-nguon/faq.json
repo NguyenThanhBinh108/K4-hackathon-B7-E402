@@ -49,6 +49,61 @@
     "data_type": "tong_hop_tu_tai_lieu_khoa"
   },
   {
+    "id": "faq_017",
+    "topic_key": "chatbot",
+    "question": "Làm chatbot cho doanh nghiệp thì bắt đầu từ đâu?",
+    "variants": [
+      "lam chatbot bat dau tu dau",
+      "xay dung ai chatbot support"
+    ],
+    "answer": "Bắt đầu từ việc xác định chatbot giải bài toán gì, cho ai, thay thế cách làm nào — không bắt đầu từ công nghệ. Yêu cầu kiểu 'làm một AI chatbot support' là đề bài mơ hồ; phải bóc ra thành công việc cụ thể của một vai cụ thể thì mới triển khai và đo được.",
+    "sources": [
+      {
+        "code": "T01-030",
+        "lecture": "Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+        "heading": "Từ đề bài mơ hồ đến vấn đề thực sự",
+        "quote": "Đây là một câu mà mình gặp được rất nhiều — nhiều công ty hay đặt ra câu hỏi này, nhiều sếp hay bảo là muốn xây dựng AI chatbot support. Khi nhận cái đề bài này thì các bạn sẽ phải tự tay xử lý toàn bộ. Với mình, đề bài…"
+      },
+      {
+        "code": "T03-037",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Chọn dự án: giá trị cạnh tranh, metric và mindset đi làm",
+        "quote": "Rồi. Khi các bạn đã xác định là cái bài toán mình có khả năng làm được bằng LLM rồi, thì các bạn phải nghĩ tiếp: các bạn đang muốn bán sản phẩm đúng không? Thế thì đầu tiên các bạn phải làm được cái gì? Cạnh tranh được…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 70,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_018",
+    "topic_key": "tool",
+    "question": "Tool calling là gì? Khi nào cho model gọi tool?",
+    "variants": [
+      "tool calling la gi",
+      "function calling la gi",
+      "cho model goi tool khi nao"
+    ],
+    "answer": "Tool calling là cho model quyền gọi một hàm/API bên ngoài thay vì tự bịa kết quả — ví dụ tra cơ sở dữ liệu, tính toán, gửi truy vấn. Dùng khi câu trả lời cần dữ liệu model không có sẵn hoặc cần độ chính xác mà sinh chữ không đảm bảo. Mỗi tool thêm vào là thêm một chỗ có thể hỏng, nên chỉ thêm khi thật cần.",
+    "sources": [
+      {
+        "code": "T03-134",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Workflow pattern: chaining, routing, parallel và agent",
+        "quote": "Mấy cái này các bạn có thể về bảo con AI, hay tìm cái video giải thích thì nó cũng dễ hiểu hơn — nó cũng không có gì khác đâu. Loanh quanh vẫn chỉ là bây giờ bạn có con agent, bạn bảo nó giải thích, bảo nó chia việc;…"
+      },
+      {
+        "code": "D1-p23",
+        "lecture": "Slide bài giảng Day 1",
+        "heading": "Từ LLM đến agent: bốn mức độ — mỗi bậc thêm một năng lực",
+        "quote": "Từ LLM đến agent: bốn mức độ — mỗi bậc thêm một năng lực LEVEL 0 Bộ não suy luận LLM trần — không công cụ, không dữ liệu mới LEVEL 1 Có kết nối + tools: search web, đọc database, gọi API — vượt khỏi bong bóng thời gian…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 61,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
     "id": "faq_003",
     "topic_key": "prompt",
     "question": "Prompt engineering là gì? Có phải train lại model không?",
@@ -199,6 +254,34 @@
     "data_type": "tong_hop_tu_tai_lieu_khoa"
   },
   {
+    "id": "faq_019",
+    "topic_key": "eval",
+    "question": "Đánh giá một sản phẩm AI thì đo bằng gì?",
+    "variants": [
+      "eval la gi",
+      "danh gia san pham ai",
+      "do chat luong ai"
+    ],
+    "answer": "Không đo bằng cảm giác. Cách làm: chạy tay 10-20 đầu vào, đọc từng đầu ra, đặt tên cho từng loại lỗi thấy được, biến mỗi loại thành một tiêu chí kiểm chứng được (người ngoài chấm ra cùng kết quả), rồi mới xây bộ case và chốt ngưỡng đạt bằng con số trước khi đo.",
+    "sources": [
+      {
+        "code": "T05-145",
+        "lecture": "Buổi về bài toán · đánh giá · dữ liệu",
+        "heading": "Problem statement",
+        "quote": "Ở cái này chúng ta có một cái khung. Khi mô tả, chúng ta có cái actor hay gọi là operator — người đang thực hiện. Sau đó, thứ hai, chúng ta mô tả workflow hiện tại: đang xử lý qua bao nhiêu bước và đang dùng những tool…"
+      },
+      {
+        "code": "T06-136",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Token và cơ chế dự đoán next token",
+        "quote": "Quá trình dự báo next token: cái LLM nó không hiểu ngôn ngữ giống con người nhá, mà nó chỉ dự đoán token nào có xác suất cao nhất — hay còn gọi là similarity score. Các bạn học xác suất thống kê có cái biểu đồ phân bố…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 13,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
     "id": "faq_016",
     "topic_key": "zero shot",
     "question": "Zero-shot, one-shot, few-shot, CoT khác nhau thế nào?",
@@ -210,6 +293,60 @@
     "sources": [],
     "gap": true,
     "asked_count": 12,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_020",
+    "topic_key": "guard",
+    "question": "Làm sao chặn model trả lời bậy hoặc ra ngoài phạm vi?",
+    "variants": [
+      "chan model tra loi bay",
+      "gioi han pham vi tra loi"
+    ],
+    "answer": "Ba lớp: chặn ở đầu vào (loại yêu cầu ngoài phạm vi trước khi gọi model), ràng buộc trong prompt (nêu rõ được làm gì, không được làm gì), và kiểm ở đầu ra (đối chiếu với nguồn, từ chối khi không có căn cứ). Lớp bằng luật cứng kiểm chứng dễ hơn lớp chỉ dựa vào nhắc nhở trong prompt.",
+    "sources": [
+      {
+        "code": "T06-074",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Hỏi đáp về phạm vi và lộ trình khóa học",
+        "quote": "Ok, cảm ơn em nhá. Mọi người lưu ý, câu hỏi đấy rất hay. Lúc sáng [giảng viên] cũng đã trao đổi đầu buổi, mình cũng vì việc này việc kia mà không đi hết được cái summary này cho các bạn. Trong vòng 15 ngày thì gần như…"
+      },
+      {
+        "code": "T04-074",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Các lớp bao quanh LLM và tầm quan trọng của evaluation",
+        "quote": "Bản thân LLM chỉ là một bộ não phía bên trong. Để bộ não này phát huy hết năng lực, nó cần các lớp lớn hơn bên ngoài. Thứ nhất là context — bối cảnh: các mô hình AI dù rất thông minh nhưng không có ngữ cảnh về doanh…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 11,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_021",
+    "topic_key": "memory",
+    "question": "Memory trong agent là gì?",
+    "variants": [
+      "memory la gi",
+      "agent nho hoi thoai truoc"
+    ],
+    "answer": "Model không tự nhớ giữa các lượt gọi — mọi thứ nó 'nhớ' đều phải được đưa lại vào ngữ cảnh. Memory là cơ chế lưu và chọn lại phần đáng nhớ để nhét vào lượt sau. Vì context window có hạn nên phải chọn lọc, không thể nhét toàn bộ lịch sử.",
+    "sources": [
+      {
+        "code": "T04-074",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Các lớp bao quanh LLM và tầm quan trọng của evaluation",
+        "quote": "Bản thân LLM chỉ là một bộ não phía bên trong. Để bộ não này phát huy hết năng lực, nó cần các lớp lớn hơn bên ngoài. Thứ nhất là context — bối cảnh: các mô hình AI dù rất thông minh nhưng không có ngữ cảnh về doanh…"
+      },
+      {
+        "code": "T02-020",
+        "lecture": "Day 2 — Chỉ số thành công & mức tự động hoá (phần sau buổi)",
+        "heading": "Chỉ số thành công và đo lường sản phẩm",
+        "quote": "Lấy ví dụ: như mọi người biết, nhiều khi chúng ta xây dựng sản phẩm ra và muốn dùng ngôn ngữ marketing — \"tôi có 1 triệu user\". Bạn hoàn toàn có thể xây sản phẩm, gắn Google Analytics vào, và cứ một visitor bạn coi là…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 8,
     "data_type": "tong_hop_tu_tai_lieu_khoa"
   },
   {
@@ -233,6 +370,60 @@
         "lecture": "Buổi Foundation: transformer & attention",
         "heading": "Hỏi đáp về phạm vi và lộ trình khóa học",
         "quote": "Ok, cảm ơn em nhá. Mọi người lưu ý, câu hỏi đấy rất hay. Lúc sáng [giảng viên] cũng đã trao đổi đầu buổi, mình cũng vì việc này việc kia mà không đi hết được cái summary này cho các bạn. Trong vòng 15 ngày thì gần như…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 7,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_022",
+    "topic_key": "latency",
+    "question": "Làm sao giảm độ trễ khi gọi LLM?",
+    "variants": [
+      "giam latency",
+      "goi llm cham qua"
+    ],
+    "answer": "Vài hướng thường dùng: chọn model nhỏ hơn cho bước dễ, rút ngắn prompt và phần ngữ cảnh đưa vào, chạy song song các bước độc lập, hiển thị dần kết quả thay vì chờ trọn câu trả lời, và lưu lại kết quả cho câu hỏi lặp. Đo trước khi tối ưu để biết chỗ nào thật sự chậm.",
+    "sources": [
+      {
+        "code": "D2-p15",
+        "lecture": "Slide bài giảng Day 2",
+        "heading": "Cần duy trì tính dự đoán được",
+        "quote": "Cần duy trì tính dự đoán được Nút Home / Cancel phải luôn nằm ở một chỗ quen thuộc — người dùng không phải đoán mỗi lần. Thông tin tĩnh, ít thay đổi Nội dung cố định thì cứ hiển thị trực tiếp — không cần AI sinh lại mỗi…"
+      },
+      {
+        "code": "T04-078",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Bức tranh thị trường mô hình và tốc độ thay đổi",
+        "quote": "Đấy cũng là câu chuyện của rất nhiều startup — hay có câu đùa là big tech ra một tính năng là startup chết. Trong khoảng 2 năm vừa rồi đã có rất nhiều startup như vậy: cổ phiếu lao dốc, có nhiều startup chết luôn rồi.…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 7,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_023",
+    "topic_key": "routing",
+    "question": "Routing là gì trong thiết kế workflow?",
+    "variants": [
+      "routing la gi",
+      "phan loai roi chuyen nhanh"
+    ],
+    "answer": "Routing là bước phân loại đầu vào rồi đưa vào nhánh xử lý phù hợp, thay vì dùng một đường chung cho mọi loại. Ưu điểm là mỗi nhánh tối ưu riêng được và đoán trước được hành vi; nhược điểm là phân loại sai thì cả nhánh sau sai theo, nên bước phân loại phải được đo riêng.",
+    "sources": [
+      {
+        "code": "D2-p20",
+        "lecture": "Slide bài giảng Day 2",
+        "heading": "1. Prompt Chaining",
+        "quote": "1. Prompt Chaining In → LLM Call 1→ Gate → LLM Call 2→ LLM Call 3→ Out ┖ - - Gate fail → Exit Chia task thành chuỗi bước tuần tự, có gate kiểm tra giữa các bước. VD Viết outline → check → viết bài. Ý nghĩa quyết định:…"
+      },
+      {
+        "code": "T03-132",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Workflow pattern: chaining, routing, parallel và agent",
+        "quote": "Routing ở đây là một ví dụ khác nha. Các bạn có thể hiểu như nãy mình bảo: hiện tại trên ChatGPT bây giờ họ đang dùng routing. Bạn nhập một cái prompt, cho dù bạn được quyền chọn instant hay advanced thinking, thực tế…"
       }
     ],
     "gap": false,
@@ -267,6 +458,33 @@
     "data_type": "tong_hop_tu_tai_lieu_khoa"
   },
   {
+    "id": "faq_028",
+    "topic_key": "intent",
+    "question": "Nhận diện intent để làm gì?",
+    "variants": [
+      "intent la gi",
+      "phan loai y dinh nguoi dung"
+    ],
+    "answer": "Để trả lời đúng cỡ và đúng kiểu. Cùng một khung trả lời cho mọi loại câu hỏi sẽ sai với phần lớn: người chào hỏi, người hỏi bài, người hỏi thủ tục cần ba cách đáp khác nhau. Phân loại sai thì mọi bước sau sai theo, nên bước này phải có bộ case đo riêng.",
+    "sources": [
+      {
+        "code": "T03-041",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Chọn dự án: giá trị cạnh tranh, metric và mindset đi làm",
+        "quote": "Ok, quay lại tiếp cái khung tổng thể của bài hôm nay — các bạn cũng chỉ cần chú ý thôi, tức là bốn cái phần. Quan trọng là các bạn có thể xác định được là có thể dùng AI system hoặc hệ thống tự động không. Bây giờ mình…"
+      },
+      {
+        "code": "T02-039",
+        "lecture": "Day 2 — Chỉ số thành công & mức tự động hoá (phần sau buổi)",
+        "heading": "Ba cấp độ kỹ thuật: rule-based, workflow, agent",
+        "quote": "Và một cái quan trọng nữa: khi bạn đi một luồng phức tạp thì bạn sẽ rất khó kiểm soát, rất dễ bị sai. Trong những luồng cơ bản như này, khi nó sai bạn rất dễ debug; nhưng bạn dựng các luồng agent phức tạp thì thậm chí…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 6,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
     "id": "faq_011",
     "topic_key": "rlhf",
     "question": "RLHF là gì?",
@@ -287,6 +505,33 @@
         "lecture": "Slide bài giảng Day 1",
         "heading": "RLHF: ba bước uốn cỗ máy đoán token thành trợ lý biết nghe lời",
         "quote": "RLHF: ba bước uốn cỗ máy đoán token thành trợ lý biết nghe lời ① Model viết nhiều câu trả lời «Cùng một câu hỏi» ↓ LLM Trả lời A Trả lời B Trả lời C Trả lời D ② Người chấm xếp hạng Trả lời B 1 Trả lời D 2 Trả lời A 3…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 5,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_027",
+    "topic_key": "mvp",
+    "question": "MVP trong sản phẩm AI nên gồm những gì?",
+    "variants": [
+      "mvp la gi",
+      "lam mvp the nao"
+    ],
+    "answer": "Một lát cắt đủ hẹp để chạy hết từ đầu đến cuối: một người dùng, một công việc, một quyết định AI, một kết quả. Đủ để đo xem quyết định AI đó có đúng không. Không phải bản rút gọn của toàn bộ sản phẩm, mà là một đường xuyên suốt mỏng nhất còn tạo ra giá trị.",
+    "sources": [
+      {
+        "code": "T01-016",
+        "lecture": "Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+        "heading": "Product manager, project manager và văn hoá làm product",
+        "quote": "Theo nghiên cứu về não bộ thì não bộ của chúng ta hay đi theo thói quen. Khi bạn luôn nhảy thẳng vào solution thì bạn sẽ bị quen như thế, và nếu bạn không bao giờ cho mình dừng lại, cho mình câu hỏi để xây dựng một lối…"
+      },
+      {
+        "code": "T05-088",
+        "lecture": "Buổi về bài toán · đánh giá · dữ liệu",
+        "heading": "Data, baseline, build–eval và bốn bài học kỹ thuật",
+        "quote": "Và ở đây có bốn cái bài học kỹ thuật quan trọng từ cái life cycle này. Một: không có đo — không có cái chỉ số thế nào là thành công — thì cũng như không có hết. Chưa đo thì đừng có làm, hoặc là chưa đo thì đừng có…"
       }
     ],
     "gap": false,
@@ -321,6 +566,104 @@
     "data_type": "tong_hop_tu_tai_lieu_khoa"
   },
   {
+    "id": "faq_024",
+    "topic_key": "structured output",
+    "question": "Làm sao bắt model trả về JSON đúng định dạng?",
+    "variants": [
+      "structured output",
+      "bat model tra ve json",
+      "schema dau ra"
+    ],
+    "answer": "Nêu rõ schema trong prompt kèm ví dụ, và dùng chế độ ép định dạng của nhà cung cấp nếu có. Quan trọng không kém: phía code phải chịu được đầu ra hỏng — model có thể trả JSON bị cắt giữa chừng hoặc kèm chữ thừa, nên luôn bọc bước phân tích trong xử lý lỗi và thử lại, đừng để một câu trả lời hỏng làm chết cả luồng.",
+    "sources": [
+      {
+        "code": "D1-p28",
+        "lecture": "Slide bài giảng Day 1",
+        "heading": "Giải phẫu một prompt: bốn lớp xếp chồng",
+        "quote": "Giải phẫu một prompt: bốn lớp xếp chồng LỚP 1 System instruction “Lời dặn đầu caˮ: model là ai, cư xử thế nào, không được làm gì «Bạn là trợ lý y khoa, trả lời ngắn gọn, không chẩn đoán…» LỚP 2 User input Câu hỏi / yêu…"
+      },
+      {
+        "code": "T03-123",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Hệ thống nhiều thành phần: khoanh vùng lỗi và UI/UX",
+        "quote": "Ở cái hình này mình cần lưu ý thế này. Ngày xưa nếu chỉ dùng chatbot bình thường — người dùng hỏi gì mình hỏi ngược lại con ChatGPT, nó trả lời lại, xong mình thu tiền — thì quá đơn giản đúng không? Mình chỉ cần lo hai…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 4,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_025",
+    "topic_key": "fallback",
+    "question": "Khi AI không chắc thì nên làm gì?",
+    "variants": [
+      "khi ai khong chac",
+      "fallback la gi",
+      "chuyen nguoi that"
+    ],
+    "answer": "Không đoán liều. Ba đường lui theo mức độ: hỏi lại một câu để làm rõ, trả lời kèm giới hạn và nói rõ chỗ chưa chắc, hoặc từ chối và chuyển cho người có thẩm quyền. Chọn đường nào phụ thuộc cost-of-error — sai càng đắt thì càng phải nghiêng về chuyển người.",
+    "sources": [
+      {
+        "code": "T01-049",
+        "lecture": "Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+        "heading": "Mô hình Double Diamond: làm đúng cái sai hay làm sai cái đúng?",
+        "quote": "Thế thì bây giờ có cách nào để mình tìm ra được vấn đề đúng hay không? Có một kỹ thuật mà mình xài khá nhiều, thấy rất có ích để xác định vấn đề trong làm sản phẩm: phase đầu tiên là problem discovery — khám phá vấn đề,…"
+      },
+      {
+        "code": "T04-051",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Mổ xẻ mô hình ngôn ngữ lớn: dự đoán token và context",
+        "quote": "Rồi sau token thì cũng có một khái niệm rất là quan trọng, đấy là context. Context nghĩa là bối cảnh, ngữ cảnh. Context ở đây nghĩa là gì? Là toàn bộ những thông tin mà một mô hình nó có thể tiêu thụ trong một lần — có…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 4,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_026",
+    "topic_key": "cost",
+    "question": "Chi phí gọi LLM tính thế nào, làm sao giảm?",
+    "variants": [
+      "chi phi goi llm",
+      "token cost",
+      "giam chi phi ai"
+    ],
+    "answer": "Chi phí tính theo token vào và token ra, nên prompt dài và câu trả lời dài đều tốn. Cách giảm: cắt phần ngữ cảnh không cần, dùng model nhỏ cho bước đơn giản, lưu lại kết quả câu hỏi lặp, và giới hạn độ dài đầu ra. Đo lượng token thật trước khi tối ưu.",
+    "sources": [
+      {
+        "code": "T04-083",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Benchmark năng lực và xu hướng chi phí tính toán",
+        "quote": "Thực ra tầm năm ngoái hay năm kia là một khoảng thời gian rất đẹp cho những ai nhảy được vào thị trường ở thời điểm sớm hơn — lúc đấy thế giới cào bằng hơn, vì gần như tất cả mọi người cùng được truy cập các mô hình…"
+      },
+      {
+        "code": "T06-154",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Token economy và chi phí API",
+        "quote": "Ở slide này các bạn quay về một chút: mỗi lần chúng ta gọi API thì phải trả một khoản tiền, và khoản tiền đấy trả cho những bên cung cấp như OpenAI hoặc Google. Trong thế giới GenAI người ta gọi đó là token economy.…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 4,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_035",
+    "topic_key": "mcp",
+    "question": "MCP là gì?",
+    "variants": [
+      "mcp la gi",
+      "model context protocol"
+    ],
+    "answer": "Chủ đề này chưa có trong tài liệu và transcript được cấp của khoá. Trợ lý không tự giải thích để tránh nói sai — đây cũng là loại claim học viên hay nhầm nguồn gốc. Hỏi Lab Coach hoặc đọc tài liệu chính thức của giao thức.",
+    "sources": [],
+    "gap": true,
+    "asked_count": 4,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
     "id": "faq_006",
     "topic_key": "rag",
     "question": "RAG là gì? Khi nào dùng RAG thay vì fine-tuning?",
@@ -346,6 +689,75 @@
     ],
     "gap": false,
     "asked_count": 3,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_036",
+    "topic_key": "prompt injection",
+    "question": "Prompt injection là gì? Chặn thế nào?",
+    "variants": [
+      "prompt injection",
+      "jailbreak",
+      "bi lua lo system prompt"
+    ],
+    "answer": "Chủ đề này chưa có đoạn giảng trong tài liệu được cấp. Nguyên tắc chung mà sản phẩm này đang áp dụng: không bao giờ hiển thị hoặc sửa system prompt, khoá kiến thức, khoá cấu hình theo yêu cầu người dùng, và mọi yêu cầu kiểu đó đều chuyển người phụ trách. Chi tiết sâu hơn hỏi Lab Coach.",
+    "sources": [],
+    "gap": true,
+    "asked_count": 2,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_029",
+    "topic_key": "privacy",
+    "question": "Đưa dữ liệu người dùng vào API AI có vấn đề gì?",
+    "variants": [
+      "gui data nguoi dung cho ai",
+      "privacy khi dung api"
+    ],
+    "answer": "Có ba thứ phải cân: nhà cung cấp có dùng dữ liệu để huấn luyện không (free tier thường có), dữ liệu có chứa thông tin cá nhân không, và người bị thu thập có biết không. Nguyên tắc an toàn: chỉ gửi phần tối thiểu cần cho việc đang làm, và không gửi dữ liệu thật của người thật khi chưa được phép.",
+    "sources": [
+      {
+        "code": "T03-141",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Bảo mật dữ liệu nhạy cảm khi làm việc với khách hàng",
+        "quote": "Rồi, khi các bạn làm những lĩnh vực như ngân hàng này nọ, thường các bạn phải đến văn phòng và phải tuân thủ rất nghiêm ngặt quy tắc bảo mật của họ. Tại vì nếu lộ thông tin — có thể các bạn không chủ động lộ, mà các bạn…"
+      },
+      {
+        "code": "T02-015",
+        "lecture": "Day 2 — Chỉ số thành công & mức tự động hoá (phần sau buổi)",
+        "heading": "Từ quick win đến phát biểu bài toán",
+        "quote": "Đây là một ví dụ về cái khung để viết một phát biểu vấn đề — bài toán đầu tiên. Sau khi các bạn viết ra bài toán như vừa rồi, mình sẽ viết thêm: đối tượng là ai — trong trường hợp vừa rồi chính là các bạn. Quy trình…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 1,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_033",
+    "topic_key": "stakeholder",
+    "question": "Sếp giao đề bài mơ hồ thì làm sao?",
+    "variants": [
+      "sep giao de bai mo ho",
+      "yeu cau chung chung"
+    ],
+    "answer": "Đừng nhảy thẳng vào giải pháp. Hỏi lại để biết ai dùng, dùng lúc nào, hiện đang làm bằng cách gì và chỗ nào đang hỏng. Nếu người giao đề chưa rõ thì thử đưa một bản cụ thể để họ phản biện — thường phản biện trên một bản nháp cụ thể dễ hơn nhiều so với mô tả trừu tượng.",
+    "sources": [
+      {
+        "code": "T01-001",
+        "lecture": "Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+        "heading": "Kỹ năng xác định bài toán từ yêu cầu mơ hồ",
+        "quote": "Một trong những kỹ năng mình nghĩ quan trọng và đang cần nhất — đặc biệt ở các công ty muốn đưa AI vào ứng dụng — là khả năng xác định ra một bài toán từ một yêu cầu rất mơ hồ, hoặc khi các bạn tham gia vào một doanh…"
+      },
+      {
+        "code": "T03-036",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Giới hạn của LLM, tool calling và RAG",
+        "quote": "Quay lại — cái chốt đầu tiên các bạn cần phải để ý chính là cái problem của bạn và cái khả năng xử lý của LLM: nó có xử lý được không, hay là phải thêm những cái phần nào. Nãy các bạn bảo là sử dụng RAG — ok, dùng RAG…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 1,
     "data_type": "tong_hop_tu_tai_lieu_khoa"
   },
   {
@@ -396,6 +808,108 @@
         "lecture": "Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
         "heading": "Mô hình Double Diamond: làm đúng cái sai hay làm sai cái đúng?",
         "quote": "Nhưng theo cá nhân mình thôi, cái nguy hiểm hơn là việc làm đúng cái sai. Khi cái vấn đề không còn đúng mà nó sai, thì bạn đang tự giới hạn không gian giải pháp cho một cái đã sai rồi. Và cơ chế của con người là khi…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 0,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_030",
+    "topic_key": "monitoring",
+    "question": "Sau khi đưa sản phẩm AI vào dùng thì theo dõi gì?",
+    "variants": [
+      "theo doi san pham ai",
+      "monitoring sau khi deploy"
+    ],
+    "answer": "Theo dõi tỷ lệ từ chối và chuyển người, tỷ lệ người dùng phản hồi tiêu cực, các câu hỏi hệ thống không trả lời được (đây là nguồn để mở rộng), độ trễ và chi phí. Quan trọng nhất là giữ được đường đi từ một câu trả lời tệ ngược về đúng nguồn và bước đã sinh ra nó.",
+    "sources": [
+      {
+        "code": "T06-059",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Ba nhóm AI và lịch sử phát triển",
+        "quote": "Thế thì ý mình nói rằng là cái lịch sử thì nó đi rất là dài, nhưng trong lịch sử này có mấy cái điểm nhấn. Khoảng năm 1970 cho đến năm 1990 được xem là vài thập kỷ gọi là mùa đông AI: các nhà khoa học cãi nhau câu…"
+      },
+      {
+        "code": "T05-055",
+        "lecture": "Buổi về bài toán · đánh giá · dữ liệu",
+        "heading": "AI product life cycle",
+        "quote": "[Học viên]: theo như em biết thì software life cycle này nó sẽ bắt đầu từ lúc mà người ta xác định được vấn đề của người dùng, cho đến khi cái sản phẩm phần mềm — cái kết quả được sinh ra để giải quyết vấn đề của người…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 0,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_031",
+    "topic_key": "bias",
+    "question": "Model có thiên lệch không? Xử lý thế nào?",
+    "variants": [
+      "bias trong model",
+      "thien lech du lieu"
+    ],
+    "answer": "Model học từ dữ liệu nên mang theo thiên lệch của dữ liệu đó. Không có cách xoá sạch; cách làm thực tế là biết mình đang dùng nó cho ai, kiểm thử riêng trên các nhóm dễ bị thiệt, và không dùng model một mình cho quyết định ảnh hưởng trực tiếp tới quyền lợi con người.",
+    "sources": [
+      {
+        "code": "T04-060",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Tham số, RLHF và ngành gán nhãn dữ liệu",
+        "quote": "Cho nên bản chất tất cả những mô hình ngôn ngữ lớn bây giờ, mặc dù nó đã đạt đến mức năng lực như vậy rồi, nhưng nó vẫn luôn cần con người tham gia vào việc huấn luyện các dữ liệu đấy. Con người sẽ là những người có khả…"
+      },
+      {
+        "code": "T06-138",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Vì sao có hallucination — bias dữ liệu và quá trình huấn luyện",
+        "quote": "Một điểm rất quan trọng nữa các bạn nhớ: LLM có thể sai, và trên thực tế không bao giờ có chuyện đúng 100%. Cái này rất quan trọng — vì không bao giờ 100% hết cho nên mới sinh ra những cái như hallucination lúc nãy các…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 0,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_032",
+    "topic_key": "dataset",
+    "question": "Cần bao nhiêu dữ liệu để làm sản phẩm AI?",
+    "variants": [
+      "can bao nhieu du lieu",
+      "dataset bao nhieu la du"
+    ],
+    "answer": "Với sản phẩm dựa trên model có sẵn, thứ cần không phải khối lượng dữ liệu huấn luyện mà là một bộ case đủ tốt để đo — vài chục case có nhãn đúng và phủ được các tình huống khó còn giá trị hơn hàng nghìn case dễ. Chỉ khi fine-tune mới cần dữ liệu quy mô lớn và chất lượng đồng đều.",
+    "sources": [
+      {
+        "code": "T04-031",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Deep learning và sức mạnh của dữ liệu",
+        "quote": "Để làm được việc đấy — thứ nhất, deep learning đã xây dựng để tạo ra một hệ thống mô phỏng mạng thần kinh của con người rồi; thế nhưng để nó thực sự học được các đặc trưng đấy, nó phải học từ dữ liệu chất lượng. Nền…"
+      },
+      {
+        "code": "T05-039",
+        "lecture": "Buổi về bài toán · đánh giá · dữ liệu",
+        "heading": "AI tạo giá trị ở đâu — bốn dấu hiệu đốt tiền sai chỗ",
+        "quote": "Kế tiếp, chúng ta nói đến các tác vụ cần tổng hợp và search các tài liệu. AI sẽ giúp gì? Giúp giảm chi phí để truy xuất cái này. Mình nói một chút về công việc bọn mình đang làm: các bạn hiện tại là sinh viên, bạn nào…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 0,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_034",
+    "topic_key": "kpi",
+    "question": "Chọn chỉ số thành công cho sản phẩm AI thế nào?",
+    "variants": [
+      "chi so thanh cong",
+      "kpi cho san pham ai"
+    ],
+    "answer": "Chỉ số phải gắn với công việc của người dùng, không gắn với hoạt động của model. 'Số câu AI trả lời' không nói lên gì; 'tỷ lệ câu người dùng không phải hỏi lại người thật' thì có. Chọn chỉ số mà khi nó tăng, người dùng thật sự đỡ vất vả hơn.",
+    "sources": [
+      {
+        "code": "T02-019",
+        "lecture": "Day 2 — Chỉ số thành công & mức tự động hoá (phần sau buổi)",
+        "heading": "Chỉ số thành công và đo lường sản phẩm",
+        "quote": "Đo lường cũng là một cái quan trọng: định lượng được rồi, nhưng làm thế nào để đo lường được nó nữa. Ví dụ bạn xây dựng một sản phẩm xong, bạn đo lường hiệu quả của nó như thế nào? Bao nhiêu user sử dụng? Hay thậm chí…"
       }
     ],
     "gap": false,
