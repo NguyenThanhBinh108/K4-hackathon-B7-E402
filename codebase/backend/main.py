@@ -17,7 +17,10 @@ from pydantic import BaseModel
 from typing import Optional
 
 from services.pdf_service import extract_text_from_pdf, truncate_text, validate_pdf
-from services.gemini_service import summarize_document, chat_with_kb, synthesize_chat, log_ai_call
+from services.gemini_service import (
+    summarize_document, chat_with_kb, synthesize_chat, log_ai_call,
+    AllProvidersExhaustedError,
+)
 from services.knowledge_base import (
     get_all_documents, search_documents,
     format_kb_for_context, is_logistics_query, is_ambiguous_query,
@@ -128,6 +131,9 @@ async def summarize_pdf(file: UploadFile = File(...)):
 
     try:
         summary = summarize_document(truncated_text, file.filename, page_count)
+    except AllProvidersExhaustedError as e:
+        raise HTTPException(status_code=503, headers={"Retry-After": "30"},
+                             detail="Hệ thống AI đang quá tải, vui lòng thử lại sau ít phút.")
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
