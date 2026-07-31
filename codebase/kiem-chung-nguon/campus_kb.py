@@ -96,6 +96,71 @@ def format_for_prompt(items: list[dict]) -> str:
     return "\n".join(out)
 
 
+# ---------------------------------------------------------------------------
+# FAQ — "cau nay da co nguoi hoi roi"
+# Dung chung co che tim kiem voi Campus KB nen de o day, khong tao them module.
+# ---------------------------------------------------------------------------
+
+_FAQ: list | None = None
+FAQ_PATH = os.environ.get("FAQ_PATH") or os.path.join(BASE_DIR, "faq.json")
+
+
+def load_faq() -> list:
+    global _FAQ
+    if _FAQ is None:
+        try:
+            with open(FAQ_PATH, "r", encoding="utf-8") as f:
+                _FAQ = json.load(f)
+        except Exception as e:
+            print(f"[!] Khong nap duoc FAQ ({FAQ_PATH}): {e}", file=sys.stderr)
+            _FAQ = []
+    return _FAQ
+
+
+def search_faq(query: str, k: int = 3) -> list[dict]:
+    """Tim cau da tra loi truoc do. Tinh diem tren cau hoi + cac cach hoi khac
+    + tu khoa chu de; cong nhe theo so luot da duoc hoi that (chu de hot thi
+    kha nang la no hon)."""
+    faq = load_faq()
+    if not faq:
+        return []
+    q = _toks(query)
+    if not q:
+        return []
+    out = []
+    for item in faq:
+        hay = _toks(" ".join([item.get("question", ""), item.get("topic_key", "")]
+                             + list(item.get("variants", []))))
+        hit = len(q & hay)
+        if not hit:
+            continue
+        score = hit / len(q) + min(item.get("asked_count", 0), 100) / 1000.0
+        out.append((score, item))
+    out.sort(key=lambda x: -x[0])
+    return [it for s, it in out[:k] if s >= 0.20]
+
+
+def format_faq_for_prompt(items: list[dict]) -> str:
+    if not items:
+        return "khong co cau nao khop"
+    lines = []
+    for it in items:
+        src = ", ".join(s["code"] for s in it.get("sources", [])) or "chua co nguon trong tai lieu khoa"
+        lines.append(
+            f"- [{it['id']}] (da co {it.get('asked_count',0)} hoc vien hoi · nguon: {src}"
+            f"{' · CHU DE CHUA CO TRONG TAI LIEU KHOA' if it.get('gap') else ''}) "
+            f"HOI: {it['question']} | DAP: {it['answer'][:300]}"
+        )
+    return "\n".join(lines)
+
+
+def faq_by_id(faq_id: str) -> dict | None:
+    for it in load_faq():
+        if it.get("id") == faq_id:
+            return it
+    return None
+
+
 def by_id(kb_id: str) -> dict | None:
     for it in load_kb():
         if it.get("id") == kb_id:

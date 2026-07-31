@@ -240,7 +240,17 @@ def get_idf() -> dict[str, float]:
 # Ket luan: bag-of-words tren tieng Viet bo dau KHONG the phan biet "thuat ngu
 # cua khoa" voi "tu tieng Viet thong thuong". Nen doi kien truc: tu khoa lo
 # DO PHU (nguong thap), LLM lo DO CHINH XAC (loc lai trong llm_verify_claim).
-MIN_IDF_MASS = 3.0
+#
+# NGUONG 3.0 -> 2.0 (31/07): do tren chatlog that, `agent` la chu de duoc hoi
+# NHIEU NHAT (103/1261 luot) nhung `agent` mot minh chi dat IDF 2.41 -> bi
+# nguong 3.0 chan sach, cau "agent la gi" tra ve RONG. Do lai theo nguong:
+#     3.0 -> 4/8 cau dung chu de ra duoc ket qua
+#     2.5 -> 5/8
+#     2.0 -> 6/8      <- chon
+#     1.5 -> 6/8      (khong loi them, chi them nhieu)
+# Cac cau rac van lot o moi nguong — nhung do la viec cua buoc LLM loc, khong
+# phai viec cua tu khoa.
+MIN_IDF_MASS = 2.0
 
 
 def search(query: str, top_k: int = 3, min_score: float = 0.25) -> list[tuple[Segment, float]]:

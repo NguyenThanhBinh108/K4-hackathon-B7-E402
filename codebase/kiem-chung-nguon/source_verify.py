@@ -292,6 +292,9 @@ Cac doan BAI GIANG CUA KHOA co the lien quan (do tim kiem tu khoa dua len, CHUA 
 Cac muc CAMPUS KB (nguon chinh thuc ve sinh hoat campus / quy dinh khoa) co the lien quan:
 {campus_candidates}
 
+Cac cau DA CO NGUOI HOI VA DA DUOC TRA LOI TRUOC DO (FAQ cua khoa):
+{faq_candidates}
+
 Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
 {{
   "claim": "cau claim chinh duoc trich ra",
@@ -304,8 +307,16 @@ Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
   "intent": "kiem_chung | hoi_kien_thuc | hoi_campus | ngoai_pham_vi",
   "answer": "CHI dien khi intent=hoi_kien_thuc hoac hoi_campus: cau tra loi <=4 cau, dua HOAN TOAN tren nguon o tren",
   "campus_decision": "CHI dien khi intent=hoi_campus: answer | hoi_lai | chuyen_lab_coach",
-  "campus_source_id": "CHI dien khi intent=hoi_campus va campus_decision=answer: id muc KB da dung, vd campus_lunch_001"
+  "campus_source_id": "CHI dien khi intent=hoi_campus va campus_decision=answer: id muc KB da dung, vd campus_lunch_001",
+  "faq_id": "id cau FAQ da dung de tra loi neu co, vd faq_001; khong dung cau nao thi de rong"
 }}
+
+UU TIEN FAQ: neu trong danh sach FAQ o tren CO cau khop y cau hoi, hay dung
+cau tra loi do lam nen (duoc dien dat lai cho tu nhien), dat "faq_id" bang id
+cua no, va intent = "hoi_kien_thuc". FAQ da duoc nhom kiem va chot nguon nen
+nhat quan hon la tu suy lai tu cac doan roi rac.
+Neu FAQ do co ghi "CHU DE CHUA CO TRONG TAI LIEU KHOA" thi PHAI noi ro dieu do
+va KHONG tu giai thich them.
 
 PHAN LOAI Y DINH — LAM TRUOC TIEN, quyet dinh toan bo cach tra loi:
 - "hoi_kien_thuc": nguoi dung DANG HOI ve noi dung khoa hoc (vd "RLHF nghia la gi",
@@ -372,6 +383,7 @@ def llm_verify_claim(
     extracted_content: str | None = None,
     reading_candidates: list[dict] | None = None,
     campus_candidates: list[dict] | None = None,
+    faq_candidates: list[dict] | None = None,
 ) -> dict:
     """Goi LLM that (OpenRouter uu tien, fallback Gemini/Anthropic).
     Neu khong co API key -> raise LLMUnavailable de caller chuyen sang mock mode.
@@ -393,6 +405,7 @@ def llm_verify_claim(
         risk_reasons=("; ".join(risk_reasons) if risk_reasons else "khong co"),
         reading_candidates=cand_txt,
         campus_candidates=campus_kb.format_for_prompt(campus_candidates or []),
+        faq_candidates=campus_kb.format_faq_for_prompt(faq_candidates or []),
     )
 
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
@@ -661,6 +674,7 @@ class VerificationResult:
     score_applicable: bool = True    # FIX-01 — False voi y kien ca nhan / cau hoi chinh sach
     reading: list = None             # FIX-16 — doan bai giang LLM xac nhan lien quan
     reading_candidates: int = 0      # so ung vien tu khoa dua len (de do do chinh xac)
+    faq: dict = None                 # FIX-22 — cau FAQ da dung de tra loi (None neu khong dung)
     intent: str = "kiem_chung"       # kiem_chung | hoi_kien_thuc | hoi_campus | ngoai_pham_vi
     answer: str = ""                 # FIX-17 — cau tra loi dua tren tai lieu khoa
     suggested_topics: list = None    # FIX-17 — chu de goi y khi ngoai pham vi
@@ -798,6 +812,8 @@ def verify_message(msg: dict) -> VerificationResult:
     # FIX-18: nap them ung vien tu Campus KB (nhanh Linh & Liem) — cung MOT
     # lan goi LLM, khong dung server Node rieng.
     campus_candidates = campus_kb.search(text, k=4)
+    # FIX-22: cau da co nguoi hoi truoc do -> tra loi nhat quan, co nguon chot san
+    faq_candidates = campus_kb.search_faq(text, k=3)
 
     mode = "LIVE_AI"
     try:
@@ -830,6 +846,11 @@ def verify_message(msg: dict) -> VerificationResult:
     # Truoc day moi input deu di qua khung "kiem chung nguon", nen mot cau hoi
     # kien thuc ("RLHF nghia la gi") bi tra ve "UNVERIFIED_NO_SOURCE — 0/100".
     # Do la khung SAI: nguoi ta hoi bai, khong chia se claim. Gio tach ba luong.
+    faq_used = None
+    fid = str(llm_out.get("faq_id") or "").strip()
+    if fid:
+        faq_used = campus_kb.faq_by_id(fid)   # id bia ra -> None, khong hien bua
+
     intent = str(llm_out.get("intent") or "kiem_chung").strip().lower()
     if intent not in ("kiem_chung", "hoi_kien_thuc", "hoi_campus", "ngoai_pham_vi"):
         intent = "kiem_chung"
@@ -902,6 +923,7 @@ def verify_message(msg: dict) -> VerificationResult:
         score_applicable=verdict not in NOT_SCORABLE_VERDICTS,
         reading=reading,
         reading_candidates=len(reading_candidates),
+        faq=faq_used,
         intent=intent,
         answer=answer,
         suggested_topics=suggested_topics,

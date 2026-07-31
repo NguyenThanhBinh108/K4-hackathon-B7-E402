@@ -89,6 +89,7 @@ def _int_env(name: str, default: int) -> int:
 
 # Do dai toi thieu de bot tu dong quet — tin ngan kieu "ok", "hihi" khong phai
 # claim kien thuc, quet chi ton quota va lam phien kenh.
+DEBUG_MESSAGES = (os.environ.get("DEBUG_MESSAGES") or "").strip() in ("1", "true", "yes")
 AUTO_MIN_LEN = _int_env("AUTO_MIN_LEN", 80)
 COOLDOWN_SECONDS = _int_env("COOLDOWN_SECONDS", 20)
 LOG_PATH = os.path.join(BASE_DIR, "..", "..", "eval", "kiem-chung-nguon", "bot-runs.jsonl")
@@ -369,9 +370,31 @@ class KcnBot(discord.Client):
         # bot, tin trong DM, va TIN CO @ BOT. Nen kenh khong bat AUTO van dung
         # duoc bang cach @ bot, va khong phai xin quyen privileged.
         is_dm = message.guild is None
-        mentioned = self.user is not None and self.user in message.mentions
+        raw = message.content or ""
+        # Hai duong nhan dien: qua danh sach mentions cua Discord, va qua chinh
+        # chuoi "<@id>" trong noi dung. Giu ca hai vi tuy cau hinh intent ma
+        # mot trong hai co the rong.
+        mentioned = bool(self.user) and (
+            self.user in message.mentions or f"<@{self.user.id}>" in raw or f"<@!{self.user.id}>" in raw
+        )
+
+        if DEBUG_MESSAGES:
+            print(f"[msg] guild={getattr(message.guild,'id',None)} ch={message.channel.id} "
+                  f"author={message.author} mentions={[u.id for u in message.mentions]} "
+                  f"mentioned={mentioned} content={raw[:80]!r}", file=sys.stderr)
+
         if mentioned or is_dm:
-            noi_dung = re.sub(rf"<@!?{self.user.id}>", "", message.content).strip()
+            if not raw:
+                # Bi @ nhung Discord khong gui noi dung -> thieu Message Content
+                # Intent. Noi ro cach sua thay vi im lang.
+                await message.reply(
+                    "Mình thấy bạn gọi nhưng **không đọc được nội dung tin nhắn**.\n"
+                    "Dùng `/kiemchung <câu hỏi>` nhé — hoặc bật **Message Content Intent** "
+                    "trong Discord Developer Portal → Bot để mình đọc được khi bị @.",
+                    mention_author=False,
+                )
+                return
+            noi_dung = re.sub(rf"<@!?{self.user.id}>", "", raw).strip()
             if not noi_dung:
                 await message.reply(
                     "Bạn @ mình kèm câu hỏi luôn nhé — ví dụ:\n"

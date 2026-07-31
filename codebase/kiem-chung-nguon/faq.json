@@ -1,0 +1,405 @@
+[
+  {
+    "id": "faq_001",
+    "topic_key": "agent",
+    "question": "Agent là gì, khác gì workflow?",
+    "variants": [
+      "agent la gi",
+      "agent khac workflow the nao",
+      "khi nao dung agent"
+    ],
+    "answer": "Khoá phân ba cấp độ: rule-based (luật cứng, đoán trước được), workflow (chuỗi bước cố định do người thiết kế), và agent (tự chọn bước tiếp theo dựa trên kết quả trung gian). Càng lên cao càng linh hoạt nhưng càng khó đoán và khó kiểm thử. Chọn mức thấp nhất giải quyết được bài toán, đừng mặc định dùng agent.",
+    "sources": [
+      {
+        "code": "T02-035",
+        "lecture": "Day 2 — Chỉ số thành công & mức tự động hoá (phần sau buổi)",
+        "heading": "Ba cấp độ kỹ thuật: rule-based, workflow, agent",
+        "quote": "Còn một thang nữa: khi AI tham gia vào rồi, đánh giá mức độ của AI — của công nghệ nói chung — thì còn có các mức độ liên quan đến kỹ thuật. Ở đây mình chia ra ba cấp độ chính, ba cấp độ lớn thôi."
+      }
+    ],
+    "gap": false,
+    "asked_count": 103,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_002",
+    "topic_key": "llm",
+    "question": "LLM hoạt động thế nào?",
+    "variants": [
+      "llm la gi",
+      "mo hinh ngon ngu lon hoat dong ra sao"
+    ],
+    "answer": "Bản chất LLM dự đoán token tiếp theo dựa trên toàn bộ ngữ cảnh đang có, lặp lại nhiều lần để sinh ra câu trả lời. Nó không tra cứu sự thật mà sinh chuỗi có xác suất cao — nên có thể phát biểu rất trôi chảy một điều sai.",
+    "sources": [
+      {
+        "code": "T04-046",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Mổ xẻ mô hình ngôn ngữ lớn: dự đoán token và context",
+        "quote": "Rồi, bây giờ mình mổ xẻ các mô hình ngôn ngữ lớn ra một chút. Bản chất các sản phẩm ChatGPT, Claude, Gemini được xây dựng dựa trên một mô hình ngôn ngữ lớn — cái gọi là trái tim, bộ não của AI. Bên trên thì nó có thể là…"
+      },
+      {
+        "code": "T06-126",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Transformer — trái tim của LLM",
+        "quote": "Các bạn quay về một chút: LLM là trái tim của cái được gọi là AI hiện đại, thì kiến trúc Transformer lại là trái tim của trái tim đấy. Nó giống như cái nền tảng không thể bỏ qua. Các bạn cũng đừng ngại các công thức…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 75,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_003",
+    "topic_key": "prompt",
+    "question": "Prompt engineering là gì? Có phải train lại model không?",
+    "variants": [
+      "prompt engineering la gi",
+      "prompt co phai train lai model khong"
+    ],
+    "answer": "Không phải train lại. Prompt engineering là điều chỉnh phần đầu vào — bối cảnh, ví dụ, ràng buộc, định dạng đầu ra — để dẫn model tới câu trả lời mong muốn. Trọng số model không đổi. Fine-tuning mới là thứ đổi trọng số, và tốn kém hơn nhiều.",
+    "sources": [
+      {
+        "code": "D1-p28",
+        "lecture": "Slide bài giảng Day 1",
+        "heading": "Giải phẫu một prompt: bốn lớp xếp chồng",
+        "quote": "Giải phẫu một prompt: bốn lớp xếp chồng LỚP 1 System instruction “Lời dặn đầu caˮ: model là ai, cư xử thế nào, không được làm gì «Bạn là trợ lý y khoa, trả lời ngắn gọn, không chẩn đoán…» LỚP 2 User input Câu hỏi / yêu…"
+      },
+      {
+        "code": "T03-119",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Fine-tuning hay RAG — và cách thuyết phục sếp",
+        "quote": "Cũng là kinh nghiệm cho các bạn: các bạn cũng đừng quá [không nghe rõ] cái kỹ thuật gọi là fine-tuning nhá. Tại vì để sử dụng được kỹ thuật fine-tuning, các bạn phải có kinh nghiệm trong việc phát triển model, phải có…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 58,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_015",
+    "topic_key": "react",
+    "question": "ReAct là gì?",
+    "variants": [
+      "react la gi",
+      "react khac langgraph the nao"
+    ],
+    "answer": "Chủ đề này chưa có trong tài liệu và transcript được cấp của khoá — 6 transcript hiện chỉ phủ nội dung Day 1 và Day 2. Trợ lý không tự giải thích để tránh nói sai. Hỏi Lab Coach hoặc đọc tài liệu chính thức của framework tương ứng.",
+    "sources": [],
+    "gap": true,
+    "asked_count": 44,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_004",
+    "topic_key": "token",
+    "question": "Token và context window là gì?",
+    "variants": [
+      "token la gi",
+      "context window la gi",
+      "gioi han context"
+    ],
+    "answer": "Token là đơn vị model cắt văn bản ra để xử lý, một từ tiếng Việt có thể thành nhiều token. Context window là số token tối đa model nhìn được trong một lượt, gồm cả prompt lẫn câu trả lời. Vượt quá thì phần cũ nhất bị cắt — đó là lý do hội thoại dài hay bị 'quên' đoạn đầu.",
+    "sources": [
+      {
+        "code": "T04-051",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Mổ xẻ mô hình ngôn ngữ lớn: dự đoán token và context",
+        "quote": "Rồi sau token thì cũng có một khái niệm rất là quan trọng, đấy là context. Context nghĩa là bối cảnh, ngữ cảnh. Context ở đây nghĩa là gì? Là toàn bộ những thông tin mà một mô hình nó có thể tiêu thụ trong một lần — có…"
+      },
+      {
+        "code": "T06-149",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Giới hạn của LLM: knowledge cutoff, hallucination, context window",
+        "quote": "Giới hạn thứ hai là hallucination — nói rồi. Cái thứ ba là context window: mô hình chỉ nhìn được một lượng nhất định, và đây cũng là cái thách thức nhất các bạn. Tại vì concept gốc của LLM là chúng ta đảm bảo đọc 10.000…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 36,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_013",
+    "topic_key": "api",
+    "question": "Gọi API của LLM cần chú ý gì?",
+    "variants": [
+      "goi api llm",
+      "system prompt la gi"
+    ],
+    "answer": "Một lượt gọi gồm nhiều lớp: system prompt đặt vai trò và ràng buộc, phần ngữ cảnh, rồi câu hỏi của người dùng. System prompt nằm đầu nên có ảnh hưởng mạnh nhất. Ngoài ra còn các tham số như temperature và giới hạn token đầu ra.",
+    "sources": [
+      {
+        "code": "T04-089",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Cơ bản về gọi API mô hình LLM",
+        "quote": "Trong một lần gọi API với AI, có một số cấu phần bạn cần tinh chỉnh và đưa vào prompt. Lớp đầu tiên là system prompt — lớp gần như có hiệu lực tuyệt đối, vì nó luôn nằm đầu tiên trong mọi prompt bạn truyền vào cho AI;…"
+      },
+      {
+        "code": "D1-p27",
+        "lecture": "Slide bài giảng Day 1",
+        "heading": "Token có giá: vé vào rẻ, vé ra đắt gấp 3–5 lần",
+        "quote": "Token có giá: vé vào rẻ, vé ra đắt gấp 3–5 lần VÉ VÀO — INPUT 1 chữ BẠN gửi đi: prompt · system instruction · context · lịch sử chat rẻ — model chỉ cần đọc VÉ RA — OUTPUT 35 chữ MODEL viết ra — nó phải tự sinh từng…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 21,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_005",
+    "topic_key": "transformer",
+    "question": "Transformer và attention hoạt động ra sao?",
+    "variants": [
+      "attention la gi",
+      "transformer hoat dong the nao"
+    ],
+    "answer": "Trước Transformer, model đọc tuần tự từng từ. Transformer đọc cả cụm cùng lúc và dùng attention để quyết định từ nào liên quan tới từ nào — nhờ vậy giữ được quan hệ ở xa và tính song song được. Bài báo gốc là 'Attention Is All You Need' (2017).",
+    "sources": [
+      {
+        "code": "T04-038",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "AlphaGo và kiến trúc Transformer",
+        "quote": "À, mình để nhầm thứ tự slide một chút. Sau đấy, đến năm 2017 là bài báo rất nổi tiếng — \"Attention Is All You Need\". Không biết có ai biết bài báo này không? Cũng có nhiều bạn không biết. Nếu nói đến ChatGPT là nói đến…"
+      },
+      {
+        "code": "T06-075",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "LLM: encoder–decoder, transformer và attention",
+        "quote": "Rồi, sang phần số hai, cũng là phần quan trọng nhất trong buổi hôm nay. Sau phần này sẽ có một bạn hỗ trợ, các bạn sẽ tự thực hành để demo cái cơ chế transformer hoạt động như thế nào, attention hoạt động như thế nào.…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 20,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_014",
+    "topic_key": "workflow",
+    "question": "Các workflow pattern thường dùng?",
+    "variants": [
+      "workflow pattern",
+      "chaining routing parallel"
+    ],
+    "answer": "Bốn dạng hay gặp: chaining (nối các bước theo thứ tự), routing (phân loại rồi đưa vào nhánh phù hợp), parallel (chạy nhiều nhánh cùng lúc rồi gộp), và agent (tự quyết bước tiếp theo). Ba dạng đầu đoán trước được nên dễ kiểm thử hơn dạng cuối.",
+    "sources": [
+      {
+        "code": "T03-131",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Workflow pattern: chaining, routing, parallel và agent",
+        "quote": "Đây là vài cái workflow pattern — dĩ nhiên trên thế giới cũng có nhiều — nói chung là những cái basic, các bạn có thể xem như những khối Lego block: gắn phần này với phần kia để ra được một hệ thống to hơn. Để mình ví…"
+      },
+      {
+        "code": "D2-p20",
+        "lecture": "Slide bài giảng Day 2",
+        "heading": "1. Prompt Chaining",
+        "quote": "1. Prompt Chaining In → LLM Call 1→ Gate → LLM Call 2→ LLM Call 3→ Out ┖ - - Gate fail → Exit Chia task thành chuỗi bước tuần tự, có gate kiểm tra giữa các bước. VD Viết outline → check → viết bài. Ý nghĩa quyết định:…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 15,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_016",
+    "topic_key": "zero shot",
+    "question": "Zero-shot, one-shot, few-shot, CoT khác nhau thế nào?",
+    "variants": [
+      "zero shot one shot few shot",
+      "cot la gi"
+    ],
+    "answer": "Phần này xuất hiện trên slide bài giảng nhưng chưa có đoạn giảng chi tiết trong transcript được cấp. Trợ lý chỉ nêu tên các khái niệm, không tự diễn giải sâu. Hỏi Lab Coach để được giải thích đầy đủ.",
+    "sources": [],
+    "gap": true,
+    "asked_count": 12,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_010",
+    "topic_key": "guardrail",
+    "question": "Guardrail là gì?",
+    "variants": [
+      "guardrail la gi",
+      "chan model tra loi bay"
+    ],
+    "answer": "Guardrail là các lớp chặn đặt quanh model để nó không làm điều không được phép: chặn đầu vào độc hại, giới hạn phạm vi trả lời, kiểm tra đầu ra trước khi hiển thị, và có đường lui khi không chắc. Guardrail bằng luật cứng kiểm chứng được dễ hơn guardrail nhờ nhắc nhở trong prompt.",
+    "sources": [
+      {
+        "code": "T04-074",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Các lớp bao quanh LLM và tầm quan trọng của evaluation",
+        "quote": "Bản thân LLM chỉ là một bộ não phía bên trong. Để bộ não này phát huy hết năng lực, nó cần các lớp lớn hơn bên ngoài. Thứ nhất là context — bối cảnh: các mô hình AI dù rất thông minh nhưng không có ngữ cảnh về doanh…"
+      },
+      {
+        "code": "T06-074",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Hỏi đáp về phạm vi và lộ trình khóa học",
+        "quote": "Ok, cảm ơn em nhá. Mọi người lưu ý, câu hỏi đấy rất hay. Lúc sáng [giảng viên] cũng đã trao đổi đầu buổi, mình cũng vì việc này việc kia mà không đi hết được cái summary này cho các bạn. Trong vòng 15 ngày thì gần như…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 7,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_009",
+    "topic_key": "benchmark",
+    "question": "Benchmark là gì? Có phải tự tạo cho mỗi bài toán không?",
+    "variants": [
+      "benchmark la gi",
+      "moi de bai phai tu tao benchmark dung khong"
+    ],
+    "answer": "Benchmark công khai đo năng lực chung của model, không đo được sản phẩm của bạn giải đúng bài toán của bạn hay chưa. Nên với mỗi bài toán cụ thể vẫn cần bộ case riêng, có nhãn đúng do nhóm tự định nghĩa và kiểm chứng được.",
+    "sources": [
+      {
+        "code": "T04-075",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Các lớp bao quanh LLM và tầm quan trọng của evaluation",
+        "quote": "Và quan trọng nhất — mình nghĩ quyết định đến 80%, và mình rất muốn nhắc tất cả mọi người trong khóa học này — đấy là evaluation. Bạn làm tốt việc này thì nó quyết định đến 80% thành công sản phẩm của các bạn.…"
+      },
+      {
+        "code": "T06-136",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Token và cơ chế dự đoán next token",
+        "quote": "Quá trình dự báo next token: cái LLM nó không hiểu ngôn ngữ giống con người nhá, mà nó chỉ dự đoán token nào có xác suất cao nhất — hay còn gọi là similarity score. Các bạn học xác suất thống kê có cái biểu đồ phân bố…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 6,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_011",
+    "topic_key": "rlhf",
+    "question": "RLHF là gì?",
+    "variants": [
+      "rlhf la gi",
+      "huan luyen theo phan hoi con nguoi"
+    ],
+    "answer": "RLHF là bước huấn luyện dùng phản hồi của con người để biến một model chỉ biết đoán token thành trợ lý biết làm theo yêu cầu: model sinh nhiều câu trả lời, người xếp hạng, rồi model được tối ưu theo xếp hạng đó.",
+    "sources": [
+      {
+        "code": "T04-060",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Tham số, RLHF và ngành gán nhãn dữ liệu",
+        "quote": "Cho nên bản chất tất cả những mô hình ngôn ngữ lớn bây giờ, mặc dù nó đã đạt đến mức năng lực như vậy rồi, nhưng nó vẫn luôn cần con người tham gia vào việc huấn luyện các dữ liệu đấy. Con người sẽ là những người có khả…"
+      },
+      {
+        "code": "D1-p19",
+        "lecture": "Slide bài giảng Day 1",
+        "heading": "RLHF: ba bước uốn cỗ máy đoán token thành trợ lý biết nghe lời",
+        "quote": "RLHF: ba bước uốn cỗ máy đoán token thành trợ lý biết nghe lời ① Model viết nhiều câu trả lời «Cùng một câu hỏi» ↓ LLM Trả lời A Trả lời B Trả lời C Trả lời D ② Người chấm xếp hạng Trả lời B 1 Trả lời D 2 Trả lời A 3…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 5,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_007",
+    "topic_key": "hallucin",
+    "question": "Hallucination là gì? Đặt temperature=0 có hết không?",
+    "variants": [
+      "hallucination la gi",
+      "temperature 0 co het hallucinate khong"
+    ],
+    "answer": "Hallucination là model phát biểu điều nghe hợp lý nhưng không có căn cứ. temperature=0 chỉ làm đầu ra ổn định hơn giữa các lần chạy, KHÔNG loại bỏ hallucination — model vẫn sinh chuỗi có xác suất cao, và chuỗi đó vẫn có thể sai. Cách giảm thật sự là bắt model trả lời dựa trên nguồn và kiểm tra được nguồn.",
+    "sources": [
+      {
+        "code": "T06-140",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Vì sao có hallucination — bias dữ liệu và quá trình huấn luyện",
+        "quote": "Ở slide này các bạn nhớ mấy cái quan trọng: giả sử các bạn làm trong ngành y hoặc ngành finance chẳng hạn, khi prompt — và thậm chí sau này qua API cũng vậy — thì chỉnh mức độ sáng tạo xuống thấp, tại vì lúc này đòi hỏi…"
+      },
+      {
+        "code": "T04-072",
+        "lecture": "Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+        "heading": "Temperature và top-k/top-p",
+        "quote": "Temperature hoạt động theo kiểu: nếu temperature bằng 0, mô hình sẽ luôn luôn lấy xác suất cao nhất. Các bạn có thể chạy thử một mô hình với temperature bằng 0 thì kết quả trả ra gần như sẽ giống nhau. Nhưng khi bạn…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 4,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_006",
+    "topic_key": "rag",
+    "question": "RAG là gì? Khi nào dùng RAG thay vì fine-tuning?",
+    "variants": [
+      "rag la gi",
+      "rag hay fine tuning",
+      "khi nao fine tune"
+    ],
+    "answer": "RAG là truy hồi tài liệu liên quan rồi đưa vào prompt để model trả lời dựa trên đó. Ưu tiên RAG khi kiến thức hay thay đổi và cần trích nguồn. Fine-tuning đòi dữ liệu chất lượng, kinh nghiệm huấn luyện và chi phí lặp lại mỗi lần dữ liệu đổi — thường không phải lựa chọn đầu tiên.",
+    "sources": [
+      {
+        "code": "T03-119",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Fine-tuning hay RAG — và cách thuyết phục sếp",
+        "quote": "Cũng là kinh nghiệm cho các bạn: các bạn cũng đừng quá [không nghe rõ] cái kỹ thuật gọi là fine-tuning nhá. Tại vì để sử dụng được kỹ thuật fine-tuning, các bạn phải có kinh nghiệm trong việc phát triển model, phải có…"
+      },
+      {
+        "code": "T06-139",
+        "lecture": "Buổi Foundation: transformer & attention",
+        "heading": "Vì sao có hallucination — bias dữ liệu và quá trình huấn luyện",
+        "quote": "Rồi qua fine-tuning, rồi self-supervised learning, rồi reinforcement learning. Thậm chí ở giai đoạn thứ ba — giai đoạn reinforcement learning, giai đoạn mà các chuyên gia đưa nó vào học và giám sát, có reward cho những…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 3,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_008",
+    "topic_key": "automation",
+    "question": "Khi nào augment, khi nào automate?",
+    "variants": [
+      "augmentation hay automation",
+      "muc do tu dong hoa"
+    ],
+    "answer": "Chọn theo cost-of-error: sai thì ai chịu hậu quả, sửa đắt hay rẻ. Sai đắt và khó sửa thì để người quyết (augment). Đa số case lành, số ít hiểm thì để máy làm phần chắc và chuyển người phần mơ hồ (conditional). Sai rẻ, user tự thấy và sửa được thì automate. Thường bắt đầu từ augment rồi mới tăng dần.",
+    "sources": [
+      {
+        "code": "T02-031",
+        "lecture": "Day 2 — Chỉ số thành công & mức tự động hoá (phần sau buổi)",
+        "heading": "Automation và augmentation: chọn mức độ tự động hoá",
+        "quote": "Rồi, mình skip nhanh một chút, đi nhanh đến cái này. Cái này khuyến nghị các bạn vào Google AI Guidebook nhá, và dành thời gian để đọc sâu hơn. Trong đấy có một số bước để chúng ta quyết định đưa AI vào sử dụng trong…"
+      },
+      {
+        "code": "D2-p17",
+        "lecture": "Slide bài giảng Day 2",
+        "heading": "AUTOMATE",
+        "quote": "AUTOMATE AI làm thay Chọn khi: · Việc khó, nhàm chán, nguy hiểm hoặc cần scale · Người dùng thiếu kiến thức / khả năng tự làm · Có \"đáp án đúng\" mà mọi người cùng đồng thuận Đo thành công bằng: hiệu quả tăng · an toàn…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 0,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  },
+  {
+    "id": "faq_012",
+    "topic_key": "cost of error",
+    "question": "Cost-of-error nghĩa là gì trong thiết kế sản phẩm AI?",
+    "variants": [
+      "cost of error la gi",
+      "chi phi sai"
+    ],
+    "answer": "Là câu hỏi: khi AI sai thì ai gánh hậu quả, phát hiện được ngay không, và sửa đắt hay rẻ. Đây là căn cứ để chọn mức tự động hoá và để đặt ngưỡng — không phải chọn theo cảm giác tiện hay không tiện.",
+    "sources": [
+      {
+        "code": "T03-083",
+        "lecture": "Day 2 (chiều) — Soi bài toán các nhóm · tự động hoá & ràng buộc",
+        "heading": "Chi phí vận hành: dựng con số trước khi trình sếp",
+        "quote": "Những phần này mình thích trao đổi với các bạn trong lúc làm lab hơn là giảng lý thuyết. Để hiểu slide này thì mình quay về thực tế luôn. Các bạn là nhân viên đi làm đúng không? Thế thì sếp thích nhất là gì? Sếp thích…"
+      },
+      {
+        "code": "T01-060",
+        "lecture": "Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+        "heading": "Mô hình Double Diamond: làm đúng cái sai hay làm sai cái đúng?",
+        "quote": "Nhưng theo cá nhân mình thôi, cái nguy hiểm hơn là việc làm đúng cái sai. Khi cái vấn đề không còn đúng mà nó sai, thì bạn đang tự giới hạn không gian giải pháp cho một cái đã sai rồi. Và cơ chế của con người là khi…"
+      }
+    ],
+    "gap": false,
+    "asked_count": 0,
+    "data_type": "tong_hop_tu_tai_lieu_khoa"
+  }
+]
