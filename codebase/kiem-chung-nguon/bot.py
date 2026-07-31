@@ -355,11 +355,30 @@ class KcnBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
+        # FIX-25: dong bo GUILD TRUOC, xoa GLOBAL SAU — thu tu nay quan trong.
+        #
+        # Cac ban truoc dang ky /kiemchung va /kcn-status o pham vi GLOBAL. Doi
+        # ten trong code KHONG lam lenh cu bien mat: Discord van giu ban da dang
+        # ky, nen nguoi dung thay ca lenh cu lan lenh moi.
+        #
+        # Lan sua dau tien lam hong: goi clear_commands(guild=None) TRUOC, ma ham
+        # do xoa lenh khoi CAY TRONG BO NHO, nen copy_global_to() sau do chep
+        # sang guild mot tap RONG -> ca server mat sach 5 lenh. Do duoc: guild
+        # con 0 lenh.
+        # Thu tu dung: copy + sync vao guild khi cay CON DU lenh, roi moi xoa
+        # global. Lenh da sync vao guild nam ben Discord, khong bi anh huong.
         if GUILD_ID.isdigit():
             guild = discord.Object(id=int(GUILD_ID))
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)   # hien ngay, khong cho 1 tieng
             print(f"Da dong bo slash command vao guild {GUILD_ID}")
+
+        try:
+            self.tree.clear_commands(guild=None)
+            await self.tree.sync()              # sync tap rong -> xoa het lenh global
+            print("Da xoa sach lenh global cu (/kiemchung, /kcn-status)")
+        except Exception as e:
+            print(f"[!] khong xoa duoc lenh global: {e}", file=sys.stderr)
         else:
             await self.tree.sync()
             print("Da dong bo slash command toan cuc (co the cho toi 1 gio moi hien)")
@@ -508,7 +527,7 @@ async def _guard(interaction: discord.Interaction) -> bool:
 # --------------------------------------------------------------------------
 @client.tree.command(
     name="kiem-chung-nguon",
-    description="Kiểm chứng một khẳng định hoặc link — trả về độ tin cậy kèm nguồn",
+    description="Kiểm chứng nguồn thông tin",
 )
 @app_commands.describe(noi_dung="Dán khẳng định hoặc link (paper / GitHub / docs) cần kiểm chứng")
 async def cmd_kiem_chung(interaction: discord.Interaction, noi_dung: str) -> None:
@@ -530,7 +549,7 @@ async def cmd_kiem_chung(interaction: discord.Interaction, noi_dung: str) -> Non
 # --------------------------------------------------------------------------
 @client.tree.command(
     name="campus",
-    description="Giải đáp thắc mắc về nội quy, quy định và sinh hoạt campus",
+    description="Giải đáp thắc mắc về nội quy quy định",
 )
 @app_commands.describe(cau_hoi="Ví dụ: trưa nay ăn ở đâu · thư viện mấy giờ đóng · gửi xe chỗ nào")
 async def cmd_campus(interaction: discord.Interaction, cau_hoi: str) -> None:
@@ -582,7 +601,7 @@ def build_summary_embed(s, title: str, color: int, foot: str) -> discord.Embed:
 
 @client.tree.command(
     name="summary",
-    description="Tổng hợp lại kiến thức chung từ một đoạn chat",
+    description="Tổng hợp lại thông tin kiến thức chung của đoạn chat",
 )
 @app_commands.describe(doan_chat="Dán đoạn hội thoại cần tổng hợp")
 async def cmd_summary(interaction: discord.Interaction, doan_chat: str) -> None:
@@ -657,7 +676,7 @@ async def cmd_office_hours(interaction: discord.Interaction,
 # --------------------------------------------------------------------------
 # Lenh phu — trang thai he thong
 # --------------------------------------------------------------------------
-@client.tree.command(name="kcn-status", description="Bot đang chạy ở chế độ nào, nạp được bao nhiêu dữ liệu")
+@client.tree.command(name="beebee-status", description="Bot đang chạy ở chế độ nào")
 async def cmd_status(interaction: discord.Interaction) -> None:
     has_key = any(os.environ.get(k) for k in
                   ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"))
