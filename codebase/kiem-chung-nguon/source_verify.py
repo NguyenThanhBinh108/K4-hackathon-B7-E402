@@ -62,6 +62,7 @@ except ImportError:
 
 from risk_patterns import scan_risk_patterns
 import campus_kb
+import doc_index
 
 # FIX-01: console Windows mac dinh dung codepage cp1252, in tieng Viet co dau
 # la UnicodeEncodeError -> crash ngay tin nhan dau tien. Ep stdout/stderr sang
@@ -295,6 +296,9 @@ Cac muc CAMPUS KB (nguon chinh thuc ve sinh hoat campus / quy dinh khoa) co the 
 Cac cau DA CO NGUOI HOI VA DA DUOC TRA LOI TRUOC DO (FAQ cua khoa):
 {faq_candidates}
 
+Cac TAI LIEU cua khoa (muc do ca tai lieu, khac voi doan bai giang o tren):
+{doc_candidates}
+
 Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
 {{
   "claim": "cau claim chinh duoc trich ra",
@@ -304,11 +308,12 @@ Tra loi CHINH XAC theo dinh dang JSON sau, khong them chu gi khac:
   "risk_class": "mot hoac nhieu trong ①②③④, cach nhau bang dau phay",
   "recommended_action": "nguoi doc nen lam gi tiep theo",
   "reading_codes": ["ma doan bai giang THAT SU lien quan, vd T04-038 hoac D1-p07"],
-  "intent": "kiem_chung | hoi_kien_thuc | hoi_campus | ngoai_pham_vi",
+  "intent": "kiem_chung | hoi_kien_thuc | hoi_campus | hoi_tai_lieu | ngoai_pham_vi",
   "answer": "CHI dien khi intent=hoi_kien_thuc hoac hoi_campus: cau tra loi <=4 cau, dua HOAN TOAN tren nguon o tren",
   "campus_decision": "CHI dien khi intent=hoi_campus: answer | hoi_lai | chuyen_lab_coach",
   "campus_source_id": "CHI dien khi intent=hoi_campus va campus_decision=answer: id muc KB da dung, vd campus_lunch_001",
-  "faq_id": "id cau FAQ da dung de tra loi neu co, vd faq_001; khong dung cau nao thi de rong"
+  "faq_id": "id cau FAQ da dung de tra loi neu co, vd faq_001; khong dung cau nao thi de rong",
+  "doc_ids": ["id tai lieu da dung khi intent=hoi_tai_lieu, vd T04 hoac D1-SLIDE"]
 }}
 
 UU TIEN FAQ: neu trong danh sach FAQ o tren CO cau khop y cau hoi, hay dung
@@ -319,6 +324,19 @@ Neu FAQ do co ghi "CHU DE CHUA CO TRONG TAI LIEU KHOA" thi PHAI noi ro dieu do
 va KHONG tu giai thich them.
 
 PHAN LOAI Y DINH — LAM TRUOC TIEN, quyet dinh toan bo cach tra loi:
+- "hoi_tai_lieu": nguoi dung hoi ve BAN THAN TAI LIEU chu khong hoi noi dung ky thuat.
+  ==> LUAT CUNG — cau hoi CHUA mot trong cac cum sau thi intent BAT BUOC la
+      "hoi_tai_lieu", KHONG duoc chon "kiem_chung" hay "hoi_kien_thuc":
+        "buoi nao"  ·  "tai lieu nao"  ·  "hoc o buoi"  ·  "nam o buoi"
+        "khoa co nhung tai lieu"  ·  "co bao nhieu buoi"  ·  "tom tat buoi"
+        "buoi <so> hoc gi"  ·  "slide nao"  ·  "transcript nao"
+  Khi do dien "answer" dua tren danh sach TAI LIEU o tren, va dat "doc_ids"
+  bang id cac tai lieu da dung (vd T04, D1-SLIDE).
+  Phan biet ngan gon:
+      "attention la gi"          -> hoi_kien_thuc  (hoi NOI DUNG)
+      "buoi nao day attention"   -> hoi_tai_lieu   (hoi TAI LIEU NAO chua noi dung do)
+  Luu y: cau hoi KHONG co link va KHONG phai mot khang dinh thi gan nhu chac
+  chan KHONG phai "kiem_chung".
 - "hoi_kien_thuc": nguoi dung DANG HOI ve noi dung khoa hoc (vd "RLHF nghia la gi",
   "attention hoat dong the nao", "khi nao dung augment") VA trong cac doan bai giang
   o tren CO doan tra loi duoc.
@@ -384,6 +402,7 @@ def llm_verify_claim(
     reading_candidates: list[dict] | None = None,
     campus_candidates: list[dict] | None = None,
     faq_candidates: list[dict] | None = None,
+    doc_candidates: list[dict] | None = None,
 ) -> dict:
     """Goi LLM that (OpenRouter uu tien, fallback Gemini/Anthropic).
     Neu khong co API key -> raise LLMUnavailable de caller chuyen sang mock mode.
@@ -406,6 +425,7 @@ def llm_verify_claim(
         reading_candidates=cand_txt,
         campus_candidates=campus_kb.format_for_prompt(campus_candidates or []),
         faq_candidates=campus_kb.format_faq_for_prompt(faq_candidates or []),
+        doc_candidates=doc_index.format_for_prompt(doc_candidates or []),
     )
 
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
@@ -675,6 +695,7 @@ class VerificationResult:
     reading: list = None             # FIX-16 — doan bai giang LLM xac nhan lien quan
     reading_candidates: int = 0      # so ung vien tu khoa dua len (de do do chinh xac)
     faq: dict = None                 # FIX-22 — cau FAQ da dung de tra loi (None neu khong dung)
+    docs: list = None                # FIX-23 — tai lieu da dung (KB muc tai lieu)
     intent: str = "kiem_chung"       # kiem_chung | hoi_kien_thuc | hoi_campus | ngoai_pham_vi
     answer: str = ""                 # FIX-17 — cau tra loi dua tren tai lieu khoa
     suggested_topics: list = None    # FIX-17 — chu de goi y khi ngoai pham vi
@@ -751,6 +772,18 @@ def aggregate_score(
 # Neu de nguyen ca cum nay lam input thi claim trich ra bi nhiem phan meta
 # ("Trang 22", "đoạn được chọn") va doan slide bi lap hai lan. Tach ra: doan
 # slide la NGU CANH, phan sau moi la cau hoi/khang dinh can kiem chung.
+# FIX-24: cum tu bao hieu nguoi dung hoi ve BAN THAN TAI LIEU (buoi nao, tai
+# lieu nao) chu khong hoi noi dung ky thuat. Viet ca co dau lan khong dau vi
+# 12% hoc vien go khong dau (do duoc tren chatlog).
+DOC_QUESTION_RE = re.compile(
+    r"(buổi nào|buoi nao|tài liệu nào|tai lieu nao|slide nào|slide nao|"
+    r"transcript nào|transcript nao|học ở buổi|hoc o buoi|nằm ở buổi|nam o buoi|"
+    r"có những tài liệu|co nhung tai lieu|có bao nhiêu buổi|co bao nhieu buoi|"
+    r"tóm tắt buổi|tom tat buoi|buổi \d+ học|buoi \d+ hoc|"
+    r"khoá có những|khoa co nhung|dạy ở đâu|day o dau)",
+    re.I,
+)
+
 VLEARN_PREFIX_RE = re.compile(
     r'^\(\s*Trang\s*\d+\s*,\s*đoạn được chọn:\s*"(?P<sel>.*?)"\s*\)\s*(?P<q>.*)$',
     re.S | re.I,
@@ -814,6 +847,8 @@ def verify_message(msg: dict) -> VerificationResult:
     campus_candidates = campus_kb.search(text, k=4)
     # FIX-22: cau da co nguoi hoi truoc do -> tra loi nhat quan, co nguon chot san
     faq_candidates = campus_kb.search_faq(text, k=3)
+    # FIX-23: KB muc TAI LIEU (nhanh Hai Dang) — tra loi "buoi nao hoc gi"
+    doc_candidates = doc_index.search(text, k=3)
 
     mode = "LIVE_AI"
     try:
@@ -846,18 +881,44 @@ def verify_message(msg: dict) -> VerificationResult:
     # Truoc day moi input deu di qua khung "kiem chung nguon", nen mot cau hoi
     # kien thuc ("RLHF nghia la gi") bi tra ve "UNVERIFIED_NO_SOURCE — 0/100".
     # Do la khung SAI: nguoi ta hoi bai, khong chia se claim. Gio tach ba luong.
+    # FIX-24 — LUAT CUNG PHAN LOAI "HOI TAI LIEU", chay SAU LLM de sua nhan.
+    # Do 3 lan voi prompt siet dan: model van tra ve "kiem_chung" cho cau
+    # "buoi nao hoc ve transformer" (1/3 dung). Ly do: ca prompt van nghieng
+    # ve nhiem vu kiem chung, va "kiem_chung" dung dau danh sach intent.
+    # Prompt khong thang duoc thien lech mac dinh -> dung luat cung, giong
+    # cach scan_risk_patterns chay truoc LLM thay vi nho LLM tu nho.
+    # Chi ep khi CO tai lieu ung vien — khong co thi de nguyen, tranh ep bua.
+    if doc_candidates and DOC_QUESTION_RE.search(norm_text := re.sub(r"\s+", " ", text.lower())):
+        if str(llm_out.get("intent") or "") != "hoi_tai_lieu":
+            print(f"  [luat] ep intent -> hoi_tai_lieu (khop cum hoi tai lieu)", file=sys.stderr)
+        llm_out["intent"] = "hoi_tai_lieu"
+        if not llm_out.get("doc_ids"):
+            llm_out["doc_ids"] = [d.get("id") for d in doc_candidates[:2]]
+
+    doc_ids = llm_out.get("doc_ids") or []
+    if isinstance(doc_ids, str):
+        doc_ids = [doc_ids]
+    docs_used = [d for d in (doc_index.by_id(str(i).strip()) for i in doc_ids) if d][:3]
+
     faq_used = None
     fid = str(llm_out.get("faq_id") or "").strip()
     if fid:
         faq_used = campus_kb.faq_by_id(fid)   # id bia ra -> None, khong hien bua
 
     intent = str(llm_out.get("intent") or "kiem_chung").strip().lower()
-    if intent not in ("kiem_chung", "hoi_kien_thuc", "hoi_campus", "ngoai_pham_vi"):
+    # FIX-24: thieu "hoi_tai_lieu" trong danh sach nay lam moi cau hoi tai lieu
+    # bi nem nguoc ve "kiem_chung" — ke ca khi luat cung o tren da ep dung nhan.
+    # Do la ly do 3 lan test truoc deu ra kiem_chung du tai lieu da duoc gan.
+    if intent not in ("kiem_chung", "hoi_kien_thuc", "hoi_campus",
+                      "hoi_tai_lieu", "ngoai_pham_vi"):
         intent = "kiem_chung"
     answer = (llm_out.get("answer") or "").strip()
 
     # Tu bao la tra loi duoc nhung khong tro vao doan nao -> khong duoc phep.
     # Day chinh la cho AI de bia nhat: "tra loi theo tai lieu" ma khong co tai lieu.
+    if intent == "hoi_tai_lieu" and not (answer and docs_used):
+        intent = "ngoai_pham_vi"
+        answer = ""
     if intent == "hoi_kien_thuc" and not (answer and reading):
         intent = "ngoai_pham_vi"
         answer = ""
@@ -924,6 +985,7 @@ def verify_message(msg: dict) -> VerificationResult:
         reading=reading,
         reading_candidates=len(reading_candidates),
         faq=faq_used,
+        docs=docs_used,
         intent=intent,
         answer=answer,
         suggested_topics=suggested_topics,

@@ -244,10 +244,35 @@ def build_campus_embed(result) -> discord.Embed:
     return emb
 
 
+def build_doc_embed(result) -> discord.Embed:
+    """FIX-23 — luong HOI TAI LIEU (tich hop tu Knowledge Synthesis cua Hai Dang).
+    Khac luong bai giang: o day tra loi ve BAN THAN tai lieu (buoi nao day gi,
+    do tin cay ra sao, bao nhieu doan), khong phai noi dung ky thuat."""
+    emb = discord.Embed(
+        title="🗂️ Tài liệu của khoá",
+        description=(result.answer or "")[:2000],
+        color=0x9B59B6,
+    )
+    lines = []
+    for d in (result.docs or []):
+        seg = f" · {d['segments']} đoạn" if d.get("segments") else ""
+        kc = ", ".join((d.get("key_concepts") or [])[:6])
+        lines.append(
+            f"**`[{d.get('id')}]`** {d.get('title')}\n"
+            f"*{d.get('module','—')} · {d.get('type','—')}{seg} · độ tin cậy {d.get('reliability','—')}*"
+            + (f"\n› {kc}" if kc else "")
+        )
+    emb.add_field(name="Tài liệu đã dùng", value="\n\n".join(lines)[:1024] or "—", inline=False)
+    emb.set_footer(text="Knowledge Synthesis · tổng hợp ở mức tài liệu, hỏi nội dung chi tiết thì mình trích mã đoạn")
+    return emb
+
+
 def build_embed(result, reading: dict) -> discord.Embed:
     # FIX-17/18 — bốn luồng khác nhau, không nhét tất cả vào khung "kiểm chứng"
     if result.intent == "hoi_campus":
         return build_campus_embed(result)
+    if result.intent == "hoi_tai_lieu" and result.answer and result.docs:
+        return build_doc_embed(result)
     if result.intent == "hoi_kien_thuc" and result.answer:
         return build_answer_embed(result)
     if result.intent == "ngoai_pham_vi" and not result.risk_flag:
@@ -355,6 +380,10 @@ class KcnBot(discord.Client):
             print(f"Campus KB: {n_kb} muc · chu de: {', '.join(campus_kb.topics()[:6])}...", flush=True)
         else:
             print("[!] Campus KB rong -> luong hoi_campus se khong tra loi duoc", file=sys.stderr)
+
+        import doc_index
+        n_doc = len(doc_index.load_docs())
+        print(f"KB tai lieu (Hai Dang): {n_doc} tai lieu", flush=True)
 
         has_key = any(os.environ.get(k) for k in
                       ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"))
