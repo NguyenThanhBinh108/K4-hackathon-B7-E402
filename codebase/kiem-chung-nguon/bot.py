@@ -61,7 +61,7 @@ except ImportError:
     )
     sys.exit(1)
 
-from source_verify import verify_message, format_discord_reply, _load_dotenv  # noqa: E402
+from source_verify import verify_message, summarize_chat, format_discord_reply, _load_dotenv  # noqa: E402
 import knowledge_index  # noqa: E402
 
 _load_dotenv()
@@ -478,19 +478,42 @@ class KcnBot(discord.Client):
 client = KcnBot()
 
 
-@client.tree.command(name="kiemchung", description="Kiểm chứng một nội dung/link được chia sẻ")
-@app_commands.describe(noi_dung="Dán nội dung hoặc link cần kiểm chứng")
-async def kiemchung(interaction: discord.Interaction, noi_dung: str) -> None:
-    now = time.time()
-    if now - _last_call.get(interaction.user.id, 0) < COOLDOWN_SECONDS:
-        await interaction.response.send_message(
-            f"Bạn vừa gọi rồi — chờ {COOLDOWN_SECONDS}s giữa hai lượt nhé (tránh cháy quota AI).",
-            ephemeral=True,
-        )
-        return
-    _last_call[interaction.user.id] = now
+# ===========================================================================
+# SLASH COMMANDS — 4 lenh, moi lenh mot viec ro rang
+#
+# Luat dat ten cua Discord: chi chu thuong, so, dau '-' va '_', khong dau cach,
+# 1-32 ky tu. Nen "/Campus" va "/Summary" phai ha xuong "/campus", "/summary".
+# ===========================================================================
 
-    # Pipeline mat vai giay toi vai chuc giay -> phai defer, khong Discord bao timeout
+def _cooldown_ok(user_id: int) -> bool:
+    now = time.time()
+    if now - _last_call.get(user_id, 0) < COOLDOWN_SECONDS:
+        return False
+    _last_call[user_id] = now
+    return True
+
+
+async def _guard(interaction: discord.Interaction) -> bool:
+    if _cooldown_ok(interaction.user.id):
+        return True
+    await interaction.response.send_message(
+        f"Bạn vừa gọi rồi — chờ {COOLDOWN_SECONDS}s giữa hai lượt nhé (tránh cháy quota AI).",
+        ephemeral=True,
+    )
+    return False
+
+
+# --------------------------------------------------------------------------
+# 1. /kiem-chung-nguon
+# --------------------------------------------------------------------------
+@client.tree.command(
+    name="kiem-chung-nguon",
+    description="Kiểm chứng một khẳng định hoặc link — trả về độ tin cậy kèm nguồn",
+)
+@app_commands.describe(noi_dung="Dán khẳng định hoặc link (paper / GitHub / docs) cần kiểm chứng")
+async def cmd_kiem_chung(interaction: discord.Interaction, noi_dung: str) -> None:
+    if not await _guard(interaction):
+        return
     await interaction.response.defer(thinking=True)
     try:
         result, reading = await run_verification(noi_dung, str(interaction.id))
@@ -498,24 +521,157 @@ async def kiemchung(interaction: discord.Interaction, noi_dung: str) -> None:
         await interaction.followup.send(f"Có lỗi khi kiểm chứng: `{type(e).__name__}`. Thử lại sau nhé.")
         print(f"[loi] {type(e).__name__}: {e}", file=sys.stderr)
         return
-
-    log_run(interaction.id, interaction.user.id, result, "slash")
+    log_run(interaction.id, interaction.user.id, result, "slash:kiem-chung-nguon")
     await interaction.followup.send(embed=build_embed(result, reading))
 
 
-@client.tree.command(name="kcn-status", description="Bot đang chạy ở chế độ nào")
-async def status(interaction: discord.Interaction) -> None:
-    has_key = any(
-        os.environ.get(k) for k in ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY")
-    )
+# --------------------------------------------------------------------------
+# 2. /campus
+# --------------------------------------------------------------------------
+@client.tree.command(
+    name="campus",
+    description="Giải đáp thắc mắc về nội quy, quy định và sinh hoạt campus",
+)
+@app_commands.describe(cau_hoi="Ví dụ: trưa nay ăn ở đâu · thư viện mấy giờ đóng · gửi xe chỗ nào")
+async def cmd_campus(interaction: discord.Interaction, cau_hoi: str) -> None:
+    if not await _guard(interaction):
+        return
+    await interaction.response.defer(thinking=True)
+    try:
+        result, reading = await run_verification(cau_hoi, str(interaction.id))
+    except Exception as e:
+        await interaction.followup.send(f"Có lỗi: `{type(e).__name__}`. Thử lại sau nhé.")
+        print(f"[loi] {type(e).__name__}: {e}", file=sys.stderr)
+        return
+    log_run(interaction.id, interaction.user.id, result, "slash:campus")
+
+    # Lenh nay chuyen ve campus. Cau hoi khong thuoc pham vi campus thi noi RO
+    # thay vi lang le tra loi bang luong khac — nguoi goi /campus dang mong doi
+    # thong tin noi quy, khong phai kien thuc ky thuat.
+    emb = build_embed(result, reading)
+    if result.intent != "hoi_campus":
+        emb.set_footer(text="Câu này không thuộc phạm vi nội quy/campus — mình trả lời bằng nguồn khác. "
+                            "Thử /summary hoặc /kiem-chung-nguon nếu đúng ý bạn hơn.")
+    await interaction.followup.send(embed=emb)
+
+
+# --------------------------------------------------------------------------
+# 3. /summary
+# --------------------------------------------------------------------------
+def build_summary_embed(s, title: str, color: int, foot: str) -> discord.Embed:
+    emb = discord.Embed(title=title, description=(s.tom_tat or "—")[:2000], color=color)
+    if s.diem_chinh:
+        emb.add_field(name="📌 Điểm chính",
+                      value="\n".join(f"• {x}" for x in s.diem_chinh)[:1024], inline=False)
+    if s.viec_can_lam:
+        emb.add_field(name="✅ Việc cần làm",
+                      value="\n".join(f"• {x}" for x in s.viec_can_lam)[:1024], inline=False)
+    if s.cau_hoi_ton:
+        emb.add_field(name="❓ Câu hỏi còn treo",
+                      value="\n".join(f"• {x}" for x in s.cau_hoi_ton)[:1024], inline=False)
+    if s.can_kiem_chung:
+        emb.add_field(name="⚠️ Nên kiểm chứng lại",
+                      value="\n".join(f"• {x}" for x in s.can_kiem_chung)[:1024], inline=False)
+    if s.nguon_khoa:
+        emb.add_field(name="📚 Đối chiếu tài liệu khoá",
+                      value=" · ".join(f"`{c}`" for c in s.nguon_khoa)[:1024], inline=False)
+    emb.set_footer(text=(("⚠️ MOCK MODE — chưa phải AI thật · " if s.mode == "MOCK" else "")
+                         + f"{s.n_dong} dòng đầu vào · {foot}"))
+    return emb
+
+
+@client.tree.command(
+    name="summary",
+    description="Tổng hợp lại kiến thức chung từ một đoạn chat",
+)
+@app_commands.describe(doan_chat="Dán đoạn hội thoại cần tổng hợp")
+async def cmd_summary(interaction: discord.Interaction, doan_chat: str) -> None:
+    if not await _guard(interaction):
+        return
+    await interaction.response.defer(thinking=True)
+    try:
+        s = await asyncio.to_thread(summarize_chat, doan_chat, "chat")
+    except Exception as e:
+        await interaction.followup.send(f"Có lỗi khi tổng hợp: `{type(e).__name__}`.")
+        print(f"[loi] {type(e).__name__}: {e}", file=sys.stderr)
+        return
+    await interaction.followup.send(embed=build_summary_embed(
+        s, "🧾 Tổng hợp đoạn chat", 0x1ABC9C,
+        "chỉ tổng hợp từ đoạn đã dán, không thêm kiến thức ngoài"))
+
+
+# --------------------------------------------------------------------------
+# 4. /tom-tat-office-hours
+# --------------------------------------------------------------------------
+@client.tree.command(
+    name="tom-tat-office-hours",
+    description="Tóm tắt buổi office hours: đã hỏi gì, chốt gì, còn treo gì",
+)
+@app_commands.describe(
+    noi_dung="Dán nội dung buổi office hours. Để trống thì mình đọc tin nhắn gần đây trong kênh.",
+    so_tin_nhan="Số tin nhắn gần nhất cần đọc khi để trống ô trên (mặc định 50, tối đa 200)",
+)
+async def cmd_office_hours(interaction: discord.Interaction,
+                           noi_dung: str = None,
+                           so_tin_nhan: int = 50) -> None:
+    if not await _guard(interaction):
+        return
+    await interaction.response.defer(thinking=True)
+
+    text = (noi_dung or "").strip()
+    nguon = "nội dung bạn dán"
+    if not text:
+        # Doc lich su kenh. Can Message Content Intent; khong co thi content rong.
+        try:
+            limit = max(5, min(int(so_tin_nhan or 50), 200))
+            lines = []
+            async for m in interaction.channel.history(limit=limit):
+                if m.author.bot or not m.content:
+                    continue
+                lines.append(f"{m.author.display_name}: {m.content}")
+            lines.reverse()
+            text = "\n".join(lines)
+            nguon = f"{len(lines)} tin nhắn gần nhất trong kênh"
+        except Exception as e:
+            print(f"[loi doc kenh] {type(e).__name__}: {e}", file=sys.stderr)
+            text = ""
+
+    if not text:
+        await interaction.followup.send(
+            "Mình **không đọc được nội dung tin nhắn trong kênh** (thiếu Message Content Intent), "
+            "nên bạn dán nội dung buổi office hours vào ô `noi_dung` giúp mình nhé.\n"
+            "Hoặc bật **Message Content Intent** trong Discord Developer Portal → Bot."
+        )
+        return
+
+    try:
+        s = await asyncio.to_thread(summarize_chat, text, "office_hours")
+    except Exception as e:
+        await interaction.followup.send(f"Có lỗi khi tóm tắt: `{type(e).__name__}`.")
+        print(f"[loi] {type(e).__name__}: {e}", file=sys.stderr)
+        return
+    await interaction.followup.send(embed=build_summary_embed(
+        s, "🎧 Tóm tắt buổi office hours", 0xE67E22, f"nguồn: {nguon}"))
+
+
+# --------------------------------------------------------------------------
+# Lenh phu — trang thai he thong
+# --------------------------------------------------------------------------
+@client.tree.command(name="kcn-status", description="Bot đang chạy ở chế độ nào, nạp được bao nhiêu dữ liệu")
+async def cmd_status(interaction: discord.Interaction) -> None:
+    has_key = any(os.environ.get(k) for k in
+                  ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"))
     try:
         n_seg = len(knowledge_index.get_index())
     except Exception:
         n_seg = 0
+    import campus_kb, doc_index
     await interaction.response.send_message(
         f"**Chế độ AI:** {'AI thật' if has_key else '⚠️ MOCK (chưa cắm API key)'}\n"
-        f"**Tự động quét:** {'bật ở ' + str(len(AUTO_CHANNEL_IDS)) + ' kênh' if AUTO_CHANNEL_IDS else 'tắt — chỉ chạy khi gọi /kiemchung'}\n"
-        f"**Bài giảng đã nạp:** {n_seg} đoạn\n"
+        f"**Tự động quét kênh:** {'bật ở ' + str(len(AUTO_CHANNEL_IDS)) + ' kênh' if AUTO_CHANNEL_IDS else 'tắt — chỉ chạy khi được gọi'}\n"
+        f"**Dữ liệu:** {n_seg} đoạn bài giảng · {len(campus_kb.load_kb())} mục campus · "
+        f"{len(campus_kb.load_faq())} câu FAQ · {len(doc_index.load_docs())} tài liệu\n"
+        f"**Lệnh:** `/kiem-chung-nguon` · `/campus` · `/summary` · `/tom-tat-office-hours`\n"
         f"**Ghi log:** chỉ verdict + điểm + id đã băm, **không lưu nội dung tin nhắn**",
         ephemeral=True,
     )

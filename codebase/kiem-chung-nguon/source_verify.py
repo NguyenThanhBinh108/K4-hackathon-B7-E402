@@ -808,6 +808,164 @@ def split_vlearn_context(text: str) -> tuple[str, str]:
     return (q or sel), sel
 
 
+SUMMARY_PROMPT = """Ban la tro ly cua mot khoa hoc AI. Nhiem vu: doc mot doan hoi thoai
+va TONG HOP lai thanh kien thuc dung duoc, KHONG bia them gi ngoai nhung gi doan chat noi.
+
+Loai noi dung: {kind_label}
+
+Doan hoi thoai:
+\"\"\"
+{text}
+\"\"\"
+
+Tai lieu cua khoa co the lien quan (dung de doi chieu, chi trich dan neu THAT SU khop):
+{course_refs}
+
+Tra loi CHINH XAC theo JSON sau, khong them chu nao khac:
+{{
+  "tom_tat": "2-4 cau tom tat doan chat noi ve gi",
+  "diem_chinh": ["toi da 5 y kien thuc rut ra duoc, moi y mot dong ngan"],
+  "cau_hoi_ton": ["cau hoi duoc neu ra ma CHUA duoc tra loi trong doan chat; khong co thi de mang rong"],
+  "viec_can_lam": ["viec duoc giao hoac thong nhat trong doan chat; khong co thi de mang rong"],
+  "can_kiem_chung": ["khang dinh nghe co ve chac chan nhung KHONG co nguon kem theo — day la cho de sai"],
+  "nguon_khoa": ["ma doan/tai lieu cua khoa THAT SU khop, vd T04-038 hoac T06; khong khop thi de rong"]
+}}
+
+QUY TAC BAT BUOC:
+- Viet HOAN TOAN bang tieng Viet. Khong chen chu Trung/Nhat/Han/Nga vao giua cau.
+- CHI tong hop tu doan chat da cho. Khong them kien thuc ben ngoai.
+- Doan chat khong co noi dung kien thuc gi (chao hoi, tan gau) -> "tom_tat" noi
+  ro dieu do va cac mang khac de RONG. KHONG co gang tao ra noi dung.
+- "can_kiem_chung" la phan gia tri nhat: chi ra cho nao nguoi doc nen kiem lai.
+- KHONG bia ma doan. Chi lay ma co trong danh sach tai lieu o tren.
+"""
+
+
+@dataclass
+class SummaryResult:
+    kind: str
+    mode: str                    # LIVE_AI | MOCK
+    tom_tat: str = ""
+    diem_chinh: list = None
+    cau_hoi_ton: list = None
+    viec_can_lam: list = None
+    can_kiem_chung: list = None
+    nguon_khoa: list = None
+    n_dong: int = 0
+
+
+def summarize_chat(text: str, kind: str = "chat") -> SummaryResult:
+    """Tong hop mot doan hoi thoai thanh kien thuc dung duoc.
+
+    kind = "chat"          -> doan chat chung trong kenh
+    kind = "office_hours"  -> buoi truc hoi dap voi coach (nhan manh cau hoi
+                              con ton va viec can lam)
+
+    Dung MOT loi goi LLM rieng, khong di qua verify_message vi day la bai toan
+    khac han: khong co claim de kiem chung, khong co intent de dinh tuyen.
+    """
+    kind_label = ("Buoi office hours / truc hoi dap voi coach — chu y cau hoi CHUA duoc "
+                  "tra loi va viec duoc giao" if kind == "office_hours"
+                  else "Doan chat trong kenh chung cua khoa")
+
+    # Tim tai lieu khoa lien quan de doi chieu (mien phi, khong goi AI)
+    refs = []
+    try:
+        import knowledge_index
+        refs += [f"- [{i['code']}] {i['lecture']} · {i['heading']}: {i['quote'][:150]}"
+                 for i in knowledge_index.suggest_reading(text[:1500], top_k=3)["items"]]
+    except Exception:
+        pass
+    try:
+        import doc_index
+        refs += [f"- [{d.get('id')}] {d.get('title')} ({d.get('module')})"
+                 for d in doc_index.search(text[:1500], k=2)]
+    except Exception:
+        pass
+
+    prompt = SUMMARY_PROMPT.format(
+        kind_label=kind_label,
+        text=text[:6000],                     # cat de khong vuot context
+        course_refs="\n".join(refs) or "khong tim thay tai lieu nao",
+    )
+
+    n_dong = len([l for l in text.splitlines() if l.strip()])
+    try:
+        out = _call_llm_raw(prompt)
+        mode = "LIVE_AI"
+    except Exception as e:
+        print(f"  [!] tong hop that bai ({type(e).__name__}: {e}) -> MOCK", file=sys.stderr)
+        return SummaryResult(
+            kind=kind, mode="MOCK", n_dong=n_dong,
+            tom_tat="[MOCK MODE — chua co API key that] Khong tong hop duoc.",
+            diem_chinh=[], cau_hoi_ton=[], viec_can_lam=[], can_kiem_chung=[], nguon_khoa=[],
+        )
+
+    def _lst(k):
+        v = out.get(k) or []
+        return [str(x).strip() for x in v if str(x).strip()][:6] if isinstance(v, list) else []
+
+    # Chi giu ma doan CO THAT — chan bia ma
+    valid = []
+    for code in _lst("nguon_khoa"):
+        code = code.strip("[]")
+        try:
+            import doc_index as _d
+            if _d.by_id(code):
+                valid.append(code); continue
+        except Exception:
+            pass
+        if re.fullmatch(r"T\d{2}-\d{3}|D[12]-p\d{2}", code):
+            valid.append(code)
+
+    return SummaryResult(
+        kind=kind, mode=mode, n_dong=n_dong,
+        tom_tat=str(out.get("tom_tat") or "").strip(),
+        diem_chinh=_lst("diem_chinh"), cau_hoi_ton=_lst("cau_hoi_ton"),
+        viec_can_lam=_lst("viec_can_lam"), can_kiem_chung=_lst("can_kiem_chung"),
+        nguon_khoa=valid,
+    )
+
+
+def _call_llm_raw(prompt: str) -> dict:
+    """Goi LLM voi prompt tuy y, tra ve dict JSON. Dung chung ha tang key/retry
+    voi llm_verify_claim nhung khong ep theo schema kiem chung."""
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
+
+    if openrouter_key and requests is not None:
+        model = os.environ.get("OPENROUTER_MODEL") or "nvidia/nemotron-3-super-120b-a12b:free"
+        r = requests.post("https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {openrouter_key}", "Content-Type": "application/json"},
+            json={"model": model, "messages": [{"role": "user", "content": prompt}]}, timeout=60)
+        d = r.json()
+        if "choices" in d:
+            return _parse_llm_json(d["choices"][0]["message"]["content"])
+        raise LLMUnavailable(f"OpenRouter: {str(d.get('error'))[:120]}")
+
+    if gemini_key and requests is not None:
+        model = os.environ.get("GEMINI_MODEL") or "gemini-flash-latest"
+        r = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}",
+            json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=60)
+        if r.status_code == 200:
+            return _parse_llm_json(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+        raise LLMUnavailable(f"Gemini HTTP {r.status_code}: {r.text[:150]}")
+
+    if anthropic_key and requests is not None:
+        r = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"x-api-key": anthropic_key, "anthropic-version": "2023-06-01",
+                     "content-type": "application/json"},
+            json={"model": "claude-sonnet-5", "max_tokens": 1500,
+                  "messages": [{"role": "user", "content": prompt}]}, timeout=60)
+        if r.status_code == 200:
+            return _parse_llm_json(r.json()["content"][0]["text"])
+        raise LLMUnavailable(f"Anthropic HTTP {r.status_code}")
+
+    raise LLMUnavailable("Chua co API key nao (OPENROUTER/GEMINI/ANTHROPIC).")
+
+
 def verify_message(msg: dict) -> VerificationResult:
     raw_text = msg["text"]
     text, _selected = split_vlearn_context(raw_text)
