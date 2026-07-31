@@ -1,11 +1,33 @@
 .DS_Store
 node_modules/
-*.env
-*.pyc
-codebase/kiem-chung-nguon/COMPLETION-REPORT-TIP-01-04.md
 
-# Ket qua chay MOCK MODE (khong phai AI that) — khong tinh la bang chung
+# --- Bi mat: khong bao gio commit ---
+*.env
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# --- Ket qua chay KHONG phai bang chung ---
+# MOCK MODE = khong phai AI that; de lan vao bang so lieu la hong bang chung
 eval/**/last-run-results*-MOCK.json
 eval/**/*.bak
 eval/kiem-chung-nguon/bot-runs.jsonl
-__pycache__/
+
+# --- Bao cao noi bo, khong thuoc bai nop ---
+codebase/kiem-chung-nguon/COMPLETION-REPORT-TIP-01-04.md
+
+# --- IDE ---
+.vscode/settings.json
+.idea/
+*.swp
+
+# --- OS ---
+Thumbs.db

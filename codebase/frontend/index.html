@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VinAI Knowledge Assistant · #tài-nguyên</title>
+  <meta name="description" content="Discord Knowledge Assistant — VinAI K4 Hackathon B7-E402" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══ DISCORD LAYOUT ══════════════════════════════════════════════ -->
+<div class="discord-app">
+
+  <!-- ── 1. Server icon sidebar (far left) ─────────────────────── -->
+  <div class="server-sidebar">
+    <div class="server-icon active" title="VinAI K4">
+      <span>⚡</span>
+    </div>
+    <div class="server-divider"></div>
+    <div class="server-icon" title="Documents" onclick="switchView('documents')">
+      <span>📁</span>
+    </div>
+    <div class="server-icon" title="Synthesize" onclick="switchView('synthesize')">
+      <span>🔮</span>
+    </div>
+  </div>
+
+  <!-- ── 2. Channel sidebar ────────────────────────────────────── -->
+  <div class="channel-sidebar">
+    <div class="server-header">
+      <span class="server-name">VinAI Thực Chiến K4</span>
+      <span class="server-chevron">▾</span>
+    </div>
+
+    <div class="channel-section">
+      <div class="channel-category">📚 Tài Nguyên</div>
+      <div class="channel-item active" onclick="switchChannel('chat')" id="ch-chat">
+        <span class="ch-hash">#</span>
+        <span class="ch-name">tài-nguyên</span>
+        <span class="ch-badge" id="unread-badge" style="display:none">1</span>
+      </div>
+      <div class="channel-item" onclick="switchChannel('synthesize')" id="ch-synthesize">
+        <span class="ch-hash">#</span>
+        <span class="ch-name">tổng-hợp-chat</span>
+      </div>
+    </div>
+
+    <div class="channel-section">
+      <div class="channel-category">📂 Knowledge Base</div>
+      <div class="channel-item" onclick="switchChannel('documents')" id="ch-documents">
+        <span class="ch-hash">#</span>
+        <span class="ch-name">tài-liệu</span>
+      </div>
+    </div>
+
+    <div class="channel-section" id="kb-channel-list">
+      <div class="channel-category">📑 Tài Liệu</div>
+      <!-- filled dynamically -->
+    </div>
+
+    <!-- User panel (bottom) -->
+    <div class="user-panel">
+      <div class="user-panel-avatar">HD</div>
+      <div class="user-panel-info">
+        <div class="user-panel-name">Hải Đăng</div>
+        <div class="user-panel-status">🟢 online</div>
+      </div>
+      <div class="user-panel-actions">
+        <button class="icon-btn-sm" title="Upload PDF" onclick="document.getElementById('pdfInput').click()">📎</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Main Content Area ─────────────────────────────────── -->
+  <div class="chat-area" id="view-chat">
+
+    <!-- Channel header -->
+    <div class="chat-topbar">
+      <div class="topbar-left">
+        <span class="topbar-hash">#</span>
+        <span class="topbar-channel">tài-nguyên</span>
+        <span class="topbar-divider">|</span>
+        <span class="topbar-desc">AI/ML Knowledge Base — Khoá VinAI Thực Chiến</span>
+      </div>
+      <div class="topbar-right">
+        <div class="api-indicator" id="apiStatus">
+          <span class="status-dot"></span>
+          <span class="status-text">Đang kết nối...</span>
+        </div>
+        <button class="topbar-btn" onclick="document.getElementById('pdfInput').click()" title="Upload PDF">
+          ⬆ Upload PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-container" id="chatMessages">
+
+      <!-- System / welcome message -->
+      <div class="system-message">
+        <span class="system-line"></span>
+        <span class="system-text">VinAI Knowledge Assistant đã tham gia — hôm nay</span>
+        <span class="system-line"></span>
+      </div>
+
+      <div class="msg-group" id="welcome-msg">
+        <div class="msg-avatar">⚡</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-author">VinAI Assistant</span>
+            <span class="msg-badge">BOT</span>
+            <span class="msg-time">Hôm nay lúc 00:00</span>
+          </div>
+          <div class="msg-content">
+            Xin chào! Mình là <strong>VinAI Knowledge Assistant</strong> 👋<br/>
+            Mình có thể giúp bạn:
+            <ul class="welcome-list">
+              <li>📄 <strong>Tóm tắt tài liệu</strong> — Upload PDF hoặc kéo file vào đây</li>
+              <li>🔍 <strong>Hỏi về kiến thức AI/ML</strong> — Có citation từ tài liệu khoá học</li>
+              <li>🔮 <strong>Tổng hợp chat</strong> — Paste đoạn chat Discord để phân tích</li>
+            </ul>
+            <div class="scope-banner">
+              ℹ️ Phạm vi: <strong>Chỉ kiến thức AI/ML từ tài liệu khoá học</strong>. Deadline, điểm số → hỏi Lab Coach hoặc <code>#announcements</code>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Message input bar -->
+    <div class="input-bar">
+      <div class="input-bar-inner">
+        <button class="input-attach" onclick="document.getElementById('pdfInput').click()" title="Upload PDF">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+          </svg>
+        </button>
+        <div class="input-wrap">
+          <input
+            type="text"
+            id="chatInput"
+            class="input-field"
+            placeholder="Nhập tin nhắn tới #tài-nguyên hoặc hỏi về AI/ML..."
+            onkeydown="handleChatKey(event)"
+            autocomplete="off"
+          />
+        </div>
+        <div class="input-actions">
+          <button class="input-emoji" title="Emoji">😊</button>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Gửi (Enter)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Documents view ───────────────────────────────────────── -->
+  <div class="chat-area" id="view-documents" style="display:none;">
+    <div class="chat-topbar">
+      <div class="topbar-left">
+        <span class="topbar-hash">#</span>
+        <span class="topbar-channel">tài-liệu</span>
+        <span class="topbar-divider">|</span>
+        <span class="topbar-desc">Danh sách tài liệu trong Knowledge Base</span>
+      </div>
+    </div>
+    <div class="docs-view-container">
+      <div class="docs-view-header">
+        <h2 class="docs-view-title">📂 Knowledge Base</h2>
+        <p class="docs-view-sub">Các tài liệu khoá học đã được phân tích và lưu trữ</p>
+        <div class="docs-stats" id="docsStats">Đang tải...</div>
+      </div>
+      <div class="docs-grid" id="docsGrid">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Synthesize view ──────────────────────────────────────── -->
+  <div class="chat-area" id="view-synthesize" style="display:none;">
+    <div class="chat-topbar">
+      <div class="topbar-left">
+        <span class="topbar-hash">#</span>
+        <span class="topbar-channel">tổng-hợp-chat</span>
+        <span class="topbar-divider">|</span>
+        <span class="topbar-desc">Tổng hợp đoạn chat Discord thành insights</span>
+      </div>
+    </div>
+    <div class="synth-view-container">
+      <div class="synth-left">
+        <div class="synth-card">
+          <div class="synth-card-title">📋 Paste đoạn chat Discord</div>
+          <textarea
+            id="synthInput"
+            class="synth-textarea"
+            placeholder="Dán nội dung chat Discord vào đây...&#10;&#10;Ví dụ:&#10;[10:00] Học viên A: RAG và fine-tuning khác nhau thế nào?&#10;[10:02] Tutor: RAG dùng khi cần update knowledge...&#10;[10:05] Học viên B: Khi nào dùng fine-tuning?"
+          ></textarea>
+          <div class="synth-footer">
+            <span class="char-count" id="charCount">0 ký tự</span>
+            <button class="btn-synth" onclick="synthesizeChat()">🔮 Tổng hợp</button>
+          </div>
+        </div>
+      </div>
+      <div class="synth-right" id="synthResult">
+        <div class="synth-placeholder">
+          <div class="synth-placeholder-icon">✨</div>
+          <div>Kết quả sẽ hiện ở đây sau khi tổng hợp</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. Members sidebar (right) ──────────────────────────── -->
+  <div class="members-sidebar">
+    <div class="members-title">ONLINE — <span id="memberOnlineCount">2</span></div>
+
+    <div class="member-item bot-member">
+      <div class="member-avatar bot-avatar-sm">⚡</div>
+      <div class="member-info">
+        <div class="member-name">VinAI Assistant <span class="member-badge">BOT</span></div>
+        <div class="member-status">🟢 Knowledge Base</div>
+      </div>
+    </div>
+
+    <div class="member-item">
+      <div class="member-avatar user-avatar-sm">HD</div>
+      <div class="member-info">
+        <div class="member-name">Hải Đăng</div>
+        <div class="member-status">🟢 online</div>
+      </div>
+    </div>
+
+    <!-- KB Stats card -->
+    <div class="kb-stats-card" id="kbStatsCard">
+      <div class="kb-stats-title">📊 Knowledge Base</div>
+      <div class="kb-stat-row">
+        <span class="kb-stat-label">Tài liệu</span>
+        <span class="kb-stat-val" id="statDocs">—</span>
+      </div>
+      <div class="kb-stat-row">
+        <span class="kb-stat-label">Accuracy</span>
+        <span class="kb-stat-val accent">90.5%</span>
+      </div>
+      <div class="kb-stat-row">
+        <span class="kb-stat-label">Golden set</span>
+        <span class="kb-stat-val accent">21/21 ✅</span>
+      </div>
+      <div class="kb-stat-row">
+        <span class="kb-stat-label">Citation</span>
+        <span class="kb-stat-val">100%</span>
+      </div>
+    </div>
+
+    <!-- Quick docs list -->
+    <div class="members-title" style="margin-top:16px;">TÀI LIỆU — <span id="kbCount">0</span></div>
+    <div id="kbList">
+      <div class="loading-state" style="padding:10px;font-size:12px;">Đang tải...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ HIDDEN FILE INPUT ════════════════════════════════════════════ -->
+<input type="file" id="pdfInput" accept=".pdf" hidden onchange="handleFileSelect(event)" />
+
+<!-- ══ MODAL ════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal-box" id="modalBox" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST ════════════════════════════════════════════════════════ -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

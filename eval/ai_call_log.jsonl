@@ -1,0 +1,1 @@
+{"timestamp": "2026-07-31T04:34:21", "route": "RAG_QUERY", "model": "gemini-1.5-flash", "input_hash": "bf4ccb27", "prompt_length": 2743, "has_citation": false, "success": false, "golden_case": null}
