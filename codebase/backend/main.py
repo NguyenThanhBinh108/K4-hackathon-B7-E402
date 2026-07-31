@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 
-from services.pdf_service import extract_text_from_pdf, truncate_text, validate_pdf
+from services.pdf_service import extract_text, truncate_text, validate_file_size, UnsupportedDocError
 from services.gemini_service import (
     summarize_document, chat_with_kb, synthesize_chat, log_ai_call,
     AllProvidersExhaustedError,
@@ -106,15 +106,28 @@ def get_knowledge_base():
 # ── Document Summarization ────────────────────────────────────────────
 @app.post("/api/summarize")
 async def summarize_pdf(file: UploadFile = File(...)):
-    """Upload PDF → AI structured summary with citations."""
+    """Upload PDF/Word/PowerPoint/Text → AI structured summary with citations.
+    Video/audio được nhận diện nhưng KHÔNG xử lý nội dung — đúng non-goal đã khai (spec.md §4).
+    """
     file_bytes = await file.read()
 
-    error = validate_pdf(file_bytes, file.filename)
+    error = validate_file_size(file_bytes)
     if error:
         raise HTTPException(status_code=400, detail=error)
 
     try:
-        text, page_count = extract_text_from_pdf(file_bytes)
+        text, page_count, doc_type = extract_text(file_bytes, file.filename)
+    except UnsupportedDocError as e:
+        if e.doc_type == "video":
+            raise HTTPException(
+                status_code=422,
+                detail="Video/audio chưa hỗ trợ tự động tóm tắt — cần transcript dạng text. "
+                       "Xem #tài-nguyên hoặc paste text thủ công."
+            )
+        raise HTTPException(
+            status_code=400,
+            detail="Định dạng file chưa hỗ trợ (chỉ PDF, Word, PowerPoint, Text)."
+        )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
@@ -162,6 +175,8 @@ def chat(req: ChatRequest):
 
     if not message:
         raise HTTPException(status_code=400, detail="Message không được để trống.")
+    if len(message) > 2000:
+        raise HTTPException(status_code=400, detail="Message quá dài (tối đa 2000 ký tự).")
 
     # ── Layer ③: Prompt injection ─────────────────────────────────────
     if is_injection_attempt(message):
@@ -191,8 +206,12 @@ def chat(req: ChatRequest):
     if not os.getenv("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="Gemini API key chưa được cấu hình.")
 
-    relevant_docs = search_documents(message)
-    kb_context = format_kb_for_context(relevant_docs)
+    if os.getenv("KB_BACKEND", "json") == "vector":
+        from services.vector_kb import vector_search, format_vector_context
+        kb_context = format_vector_context(vector_search(message))
+    else:
+        relevant_docs = search_documents(message)
+        kb_context = format_kb_for_context(relevant_docs)
 
     # Build context-aware message including conversation history
     conv_context = _get_context(session)
@@ -218,6 +237,8 @@ def synthesize(req: SynthesizeRequest):
         raise HTTPException(status_code=400, detail="Chat text không được để trống.")
     if len(text) < 50:
         raise HTTPException(status_code=400, detail="Chat text quá ngắn (cần ≥50 ký tự).")
+    if len(text) > 20000:
+        raise HTTPException(status_code=400, detail="Chat text quá dài (tối đa 20000 ký tự).")
 
     if not os.getenv("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="Gemini API key chưa được cấu hình.")

@@ -8,15 +8,16 @@
       "level": "Foundation",
       "segments": 98,
       "reliability": "Cao",
-      "key_concepts": ["LLM", "Token", "Embedding", "Context Window", "Temperature", "Tokenization"],
-      "summary": "Transcript buổi Day 1 Foundation giải thích cách LLM hoạt động từ cơ bản: tokenization, embedding, attention mechanism, và cách model sinh ra văn bản. LLM không 'hiểu' ngôn ngữ — chỉ dự đoán token tiếp theo dựa trên xác suất.",
+      "key_concepts": ["LLM", "Token", "Context Window", "Multi-head Attention", "Temperature", "Top-k/Top-p"],
+      "summary": "Transcript buổi Day 1 Foundation giải thích cách LLM hoạt động: LLM chỉ dự đoán từ/token tiếp theo dựa trên xác suất, khái niệm token/context window, attention và multi-head attention, và các tham số sinh văn bản (temperature, top-k, top-p).",
       "key_takeaways": [
-        "LLM không 'hiểu' ngôn ngữ mà dự đoán token tiếp theo dựa trên xác suất — [T04-045]",
-        "Context window giới hạn lượng thông tin model có thể xử lý cùng lúc — [T04-067]",
-        "Temperature điều chỉnh mức độ ngẫu nhiên trong output của model — [T04-067]",
-        "Embedding biến text thành vector số để model xử lý được — [T04-023]"
+        "LLM chỉ dự đoán từ/token tiếp theo dựa trên xác suất, không thực sự 'biết' tri thức — mỗi lần sinh một token rồi lặp lại vòng dự đoán — [T04-047]",
+        "Token là đơn vị tính của LLM (không phải từ hay chữ cái); tiếng Việt tốn nhiều token hơn tiếng Anh vì có dấu — [T04-049]",
+        "Context window giới hạn lượng thông tin model xử lý một lúc; 'context rot' — càng đưa nhiều ngữ cảnh không có nghĩa là model càng tốt hơn — [T04-051, T04-052]",
+        "Multi-head attention: nhiều 'góc nhìn' xử lý song song, mỗi đầu tự nhận diện một đặc trưng khác nhau rồi tổng hợp lại (ví dụ thầy bói xem voi) — [T04-056]",
+        "Temperature điều chỉnh độ sáng tạo của output; top-k/top-p giới hạn tập từ được phép chọn khi sinh token tiếp theo — [T04-071]"
       ],
-      "citations": ["[T04-001]", "[T04-023]", "[T04-045]", "[T04-067]", "[T04-098]"],
+      "citations": ["[T04-047]", "[T04-049]", "[T04-051]", "[T04-052]", "[T04-056]", "[T04-071]"],
       "source_file": "transcript-04-clean.md"
     },
     {
@@ -27,16 +28,17 @@
       "level": "Intermediate",
       "segments": 162,
       "reliability": "Cao",
-      "key_concepts": ["Transformer", "Self-Attention", "Multi-head Attention", "Positional Encoding", "Query/Key/Value", "Softmax"],
-      "summary": "Transcript giải thích kiến trúc Transformer từ góc độ trực quan: cơ chế self-attention, multi-head attention, positional encoding, và tại sao Transformer vượt trội RNN. Softmax trong attention đảm bảo weights tổng = 1.",
+      "key_concepts": ["Transformer", "Self-Attention", "Multi-head Attention", "Query/Key/Value", "Softmax", "Hallucination"],
+      "summary": "Transcript giải thích kiến trúc Transformer: input token → embedding → self-attention → feed-forward → dự đoán token kế tiếp; cơ chế self-attention qua ví dụ 'con mèo ngồi trên bàn' với công thức Query-Key-Value; nguyên nhân hallucination và cách RAG giúp giảm.",
       "key_takeaways": [
-        "Self-attention cho phép model nhìn toàn bộ sequence cùng lúc thay vì tuần tự — [T06-023]",
-        "Multi-head attention học nhiều dạng relationship khác nhau trong dữ liệu — [T06-045]",
-        "Positional encoding thêm thông tin vị trí vì Transformer không có thứ tự tự nhiên — [T06-067]",
-        "Softmax trong attention đảm bảo attention weights tổng bằng 1 (probability distribution) — [T06-089]",
-        "Query/Key/Value: Q là câu hỏi, K là chìa khoá so sánh, V là giá trị trả về — [T06-112]"
+        "Kiến trúc Transformer: input token → embedding (biểu diễn vector) → self-attention (học song song) → feed-forward → dự đoán token kế tiếp — [T06-126]",
+        "Self-attention ví dụ 'con mèo ngồi trên bàn, nó rất đáng yêu': mỗi token tính similarity score với các token khác để biết 'nó' ám chỉ con mèo hay cái bàn, dùng công thức Query (truy vấn) - Key (nhãn) - Value (nội dung) qua hàm softmax — [T06-129, T06-130, T06-131, T06-132]",
+        "Self-attention: mỗi token nhìn các token khác trong ngữ cảnh; multi-head attention: nhiều góc nhìn song song; feed-forward xử lý phi tuyến; residual connection giúp kết nối trôi chảy — [T06-086]",
+        "Nguyên nhân hallucination: dữ liệu huấn luyện có bias, quá trình fine-tune/RLHF vẫn do chuyên gia con người (có thể có bias) thực hiện, và LLM không bao giờ đúng 100% — [T06-138, T06-139]",
+        "RAG (retrieval augmented) giúp giảm hallucination: tăng cường dữ liệu cho model, khi cần trích xuất thì trả về citation — vị trí token nằm ở đâu — [T06-139]",
+        "3 giới hạn của LLM: knowledge cutoff (không biết tin tức sau thời điểm huấn luyện), hallucination, và context window (giới hạn lượng thông tin nhìn được cùng lúc) — [T06-147, T06-148, T06-149]"
       ],
-      "citations": ["[T06-001]", "[T06-023]", "[T06-045]", "[T06-067]", "[T06-089]", "[T06-112]", "[T06-162]"],
+      "citations": ["[T06-086]", "[T06-126]", "[T06-129]", "[T06-130]", "[T06-131]", "[T06-132]", "[T06-138]", "[T06-139]", "[T06-147]", "[T06-148]", "[T06-149]"],
       "source_file": "transcript-06-clean.md"
     },
     {
@@ -47,15 +49,15 @@
       "level": "Intermediate",
       "segments": 89,
       "reliability": "Cao",
-      "key_concepts": ["Problem Framing", "JTBD", "Job Executor", "Pain Point", "Impact Metric", "Problem Statement"],
-      "summary": "Transcript buổi Day 2 sáng về phương pháp xác định bài toán AI đúng: Jobs-to-be-Done framework, phân biệt pain point vs symptom, và cách đo impact bằng số. Bài toán AI tốt = Pain thật + Data có + AI làm tốt hơn.",
+      "key_concepts": ["Problem Discovery", "Double Diamond", "Impact-Effort Matrix", "Don Norman"],
+      "summary": "Transcript buổi Day 2 sáng về xác định đúng bài toán trước khi giải: 70% thành công đưa AI vào doanh nghiệp đến từ con người/vận hành chứ không phải công nghệ; mô hình Double Diamond để tìm đúng vấn đề rồi đúng giải pháp; ma trận tác động-nỗ lực để ưu tiên.",
       "key_takeaways": [
-        "Bài toán AI tốt = Pain thật + Data có + AI làm tốt hơn con người — [T01-034]",
-        "JTBD: tập trung vào 'job' người dùng muốn hoàn thành, không phải feature muốn build — [T01-001]",
-        "Đo impact bằng metric cụ thể trước khi build: bao nhiêu phút/tiền tiết kiệm được — [T01-078]",
-        "Job statement: verb + object + context — không có tên sản phẩm/AI trong câu — [T01-045]"
+        "70% thành công khi đưa AI vào doanh nghiệp đến từ con người và vận hành, không phải công nghệ — [T01-003]",
+        "Don Norman: 'Do not solve the problem I'm asked to solve' — đừng vội tin đề bài được giao là đúng, phải tìm lại vấn đề thật phía sau — [T01-045]",
+        "Mô hình Double Diamond: 2 giai đoạn (tìm đúng vấn đề, tìm đúng giải pháp), mỗi giai đoạn có pha mở rộng (khám phá) rồi pha hội tụ (chọn lọc) — [T01-049]",
+        "Ma trận tác động-nỗ lực: đánh giá impact (tiết kiệm được gì nếu giải quyết) và effort (tốn bao nhiêu người/thời gian) để ưu tiên bài toán đáng làm trước — [T01-078]"
       ],
-      "citations": ["[T01-001]", "[T01-034]", "[T01-045]", "[T01-078]", "[T01-089]"],
+      "citations": ["[T01-003]", "[T01-045]", "[T01-049]", "[T01-078]"],
       "source_file": "transcript-01-clean.md"
     },
     {
@@ -65,16 +67,16 @@
       "module": "Day 2",
       "level": "Intermediate",
       "segments": 43,
-      "reliability": "Vừa",
-      "key_concepts": ["Success Metrics", "Impact Matrix", "Automation Level", "Quick Win", "Problem Statement"],
-      "summary": "Transcript về cách đo lường thành công của sản phẩm AI và chọn mức độ tự động hoá phù hợp. Ma trận tác động-nỗ lực giúp ưu tiên bài toán. Augment vs Automate vs Conditional dựa trên cost-of-error.",
+      "reliability": "Cao",
+      "key_concepts": ["Success Metrics", "Impact-Effort Matrix", "Automation Level", "Quick Win", "North Star Metric"],
+      "summary": "Transcript về cách đo lường thành công của sản phẩm AI và chọn mức độ tự động hoá phù hợp. Ma trận tác động-nỗ lực giúp ưu tiên bài toán; đo lường sản phẩm nên hướng tới North Star Metric thật, không chỉ số lượng user.",
       "key_takeaways": [
-        "Ma trận tác động-nỗ lực: ưu tiên làm quick win trước để chứng minh value — [T02-010]",
-        "Đo lường: không phải số user mà là hành vi thay đổi theo hướng mục tiêu — [T02-024]",
-        "Mức tự động hoá phụ thuộc cost-of-error: sai rẻ → automate, sai đắt → augment — [T02-016]",
-        "Problem statement cần định lượng: X phút tiết kiệm, Y% workload giảm — [T02-018]"
+        "Ma trận tác động-nỗ lực: ưu tiên làm quick win trước — thành công nhỏ tạo động lực và niềm tin để tiếp tục — [T02-010]",
+        "Giải pháp AI có nhiều mức: không cần AI, chỉ cần quy tắc cố định, AI tham gia một số bước trong workflow, hoặc AI giải quyết toàn bộ bài toán — [T02-016]",
+        "Problem statement cần định lượng: tiết kiệm được bao nhiêu giờ công, nhân với chi phí nhân công để ra con số cụ thể thuyết phục cấp trên — [T02-018]",
+        "Đo lường sản phẩm nên hướng tới North Star Metric thật (vd: hiệu quả học tập), không phải chỉ số lượng user hay session — số user quay lại chưa chắc là sản phẩm tốt — [T02-024]"
       ],
-      "citations": ["[T02-010]", "[T02-015]", "[T02-016]", "[T02-018]", "[T02-024]"],
+      "citations": ["[T02-010]", "[T02-016]", "[T02-018]", "[T02-024]"],
       "source_file": "transcript-02-clean.md"
     },
     {
@@ -84,16 +86,15 @@
       "module": "Day 2",
       "level": "Intermediate",
       "segments": 154,
-      "reliability": "Vừa",
-      "key_concepts": ["Workflow Analysis", "Automation Constraints", "Agentic Patterns", "Tool Use", "Orchestrator"],
-      "summary": "Transcript buổi chiều Day 2 đi sâu vào phân tích workflow, các ràng buộc khi tự động hoá, và các pattern agentic: routing, orchestrator-worker, prompt chaining. Khi nào nên dùng agent thật vs augmented chatbot.",
+      "reliability": "Cao",
+      "key_concepts": ["Prompt Chaining", "Routing", "Parallel Processing", "Workflow Pattern"],
+      "summary": "Transcript buổi chiều Day 2 về các workflow pattern khi build hệ thống AI: prompt chaining (xử lý tuần tự nhiều bước), routing (phân loại request trước khi xử lý), và parallel (xử lý song song khi kết quả không phụ thuộc nhau).",
       "key_takeaways": [
-        "Agentic Fit: đánh giá 4 tiêu chí (multi-step, tool use, dynamic decision, long horizon) trước khi dùng agent — [T03-045]",
-        "Orchestrator-Worker: orchestrator chọn đúng worker theo context, worker thực hiện task cụ thể — [T03-089]",
-        "Routing pattern: phân loại request một lần đầu, xử lý theo route — đơn giản và hiệu quả — [T03-067]",
-        "Prompt chaining: output của step N là input của step N+1, không rẽ nhánh động — [T03-112]"
+        "Prompt chaining: xử lý tuần tự nhiều bước — gọi tool nhiều lần (vd lấy dữ liệu cửa hàng A rồi B) rồi tổng hợp kết quả cuối — [T03-131]",
+        "Routing: phân loại request trước khi xử lý — request dễ dùng logic cố định (nhanh, chắc chắn đúng), request khó mới dùng model + tool call (xử lý được phức tạp hơn nhưng độ chắc chắn thấp hơn) — giúp tiết kiệm chi phí và thời gian — [T03-132]",
+        "Parallel: gọi nhiều tác vụ đồng thời thay vì tuần tự khi kết quả không phụ thuộc nhau (vd tổng hợp 100 quyển sách) — đánh đổi với chi phí bộ nhớ/hạ tầng, cần phối hợp với MLOps — [T03-133]"
       ],
-      "citations": ["[T03-045]", "[T03-067]", "[T03-089]", "[T03-112]", "[T03-154]"],
+      "citations": ["[T03-131]", "[T03-132]", "[T03-133]"],
       "source_file": "transcript-03-clean.md"
     },
     {
@@ -103,16 +104,15 @@
       "module": "Day 2",
       "level": "Intermediate",
       "segments": 154,
-      "reliability": "Vừa",
-      "key_concepts": ["Evaluation", "Golden Set", "Hallucination", "RAG", "Fine-tuning", "Quality Bar"],
-      "summary": "Transcript về cách đánh giá hệ thống AI: xây golden set, đo accuracy, phát hiện hallucination. So sánh RAG vs Fine-tuning và khi nào dùng cái nào. RAG phù hợp knowledge cập nhật; fine-tuning khi cần thay đổi behavior.",
+      "reliability": "Cao",
+      "key_concepts": ["Evaluation", "Baseline", "Guardrail", "Hallucination", "Retrieval", "Citation"],
+      "summary": "Transcript về cách đánh giá hệ thống AI: 4 bài học kỹ thuật (đo lường, baseline, eval, rollback plan cho lĩnh vực nhạy cảm); rủi ro theo từng tầng kiến trúc (model → hallucination, ngữ cảnh → truy xuất sai, planning → vòng lặp) và cách kiểm soát bằng evaluation, guardrail, và citation.",
       "key_takeaways": [
-        "Golden set phải cover đủ các loại failure case, không chỉ happy path — [T05-067]",
-        "RAG phù hợp khi cần knowledge cập nhật liên tục; fine-tuning khi cần thay đổi style/behavior — [T05-112]",
-        "Hallucination giảm đáng kể khi dùng grounding + citation bắt buộc — [T05-089]",
-        "Quality bar phải chốt trước khi đo, không đổi sau khi thấy kết quả — [T05-134]"
+        "4 bài học kỹ thuật: (1) không đo lường thì đừng scale, (2) không có baseline thì đừng nghĩ AI tự động tốt hơn, (3) không eval thì vẫn chỉ là demo/MVP chứ chưa chạy thật, (4) nhóm dữ liệu nhạy cảm (y tế, tài chính) phải có kế hoạch rollback khi có sự cố — [T05-088]",
+        "Rủi ro ở tầng model: hallucination và vượt ngân sách token — kiểm soát bằng evaluation và guardrail (lớp yêu cầu: được làm gì, không được làm gì) — [T05-106, T05-109]",
+        "Rủi ro ở tầng ngữ cảnh (retrieval): truy xuất sai tài liệu → context sai → hệ thống trả lời sai; luôn tạo citation để đối chiếu chính xác dữ liệu trả về đến từ đâu — [T05-110]"
       ],
-      "citations": ["[T05-012]", "[T05-067]", "[T05-089]", "[T05-112]", "[T05-134]", "[T05-154]"],
+      "citations": ["[T05-088]", "[T05-106]", "[T05-109]", "[T05-110]"],
       "source_file": "transcript-05-clean.md"
     },
     {
@@ -123,15 +123,15 @@
       "level": "Foundation",
       "segments": null,
       "reliability": "Cao",
-      "key_concepts": ["AI Overview", "LLM", "GPT", "Prompt Engineering", "Use Cases", "Foundation Models"],
-      "summary": "Slide bài giảng Day 1 giới thiệu tổng quan AI, LLM, và cách áp dụng vào bài toán thực tế. AI không phải magic — là pattern matching rất phức tạp. LLM mạnh nhất ở text generation, summarization, Q&A.",
+      "key_concepts": ["AI Overview", "Discriminative/Generative/Agentic AI", "Expert System", "ImageNet", "Transformer"],
+      "summary": "Slide bài giảng Day 1: các tầng AI/ML/Deep Learning/GenAI/LLM, ba nhóm AI (Discriminative/Generative/Agentic), và các cột mốc lịch sử AI (hệ chuyên gia 1980, ImageNet 2009, Transformer 2017).",
       "key_takeaways": [
-        "AI không phải magic — là pattern matching rất phức tạp trên data lớn — [D1-slide-p1]",
-        "LLM mạnh nhất ở text generation, summarization, Q&A; yếu ở reasoning đòi hỏi world knowledge cập nhật — [D1-slide-p15]",
-        "Prompt engineering là kỹ năng cốt lõi để dùng LLM hiệu quả — [D1-slide-p30]",
-        "Foundation model vs fine-tuned model: trade-off giữa generality và specificity — [D1-slide-p22]"
+        "3 nhóm AI chính: Discriminative (phân loại/dự đoán — input → một nhãn), Generative (sinh nội dung mới — prompt → nội dung), Agentic (nhận mục tiêu rồi tự lập kế hoạch và hành động — goal → plan → action) — [D1-slide-p4]",
+        "1980: hệ chuyên gia (expert system) — AI chuyển từ theo đuổi trí tuệ tổng quát sang mã hoá tri thức chuyên gia để giải tốt một miền hẹp — [D1-slide-p6]",
+        "2009: ImageNet (Fei-Fei Li) — 14 triệu ảnh gán nhãn tay, minh chứng dữ liệu lớn có thể thắng thuật toán khôn hơn, tiền đề cho cú nổ AlexNet 2012 — [D1-slide-p7]",
+        "2017: Transformer — bước ngoặt giúp model hiểu ngôn ngữ theo cách linh hoạt hơn — [D1-slide-p8]"
       ],
-      "citations": ["[D1-slide-p1]", "[D1-slide-p15]", "[D1-slide-p22]", "[D1-slide-p30]"],
+      "citations": ["[D1-slide-p4]", "[D1-slide-p6]", "[D1-slide-p7]", "[D1-slide-p8]"],
       "source_file": "slides/d1-slide-hackathon.pdf"
     },
     {
@@ -142,22 +142,22 @@
       "level": "Intermediate",
       "segments": null,
       "reliability": "Cao",
-      "key_concepts": ["Problem Framing", "JTBD", "Impact Assessment", "Automation Level", "AI Product Lifecycle"],
-      "summary": "Slide bài giảng Day 2 về phương pháp xác định bài toán AI đúng: từ pain point → problem statement → impact assessment → automation level. AI product lifecycle và các cổng đánh giá.",
+      "key_concepts": ["Double Diamond", "Problem Discovery", "Impact-Effort Matrix", "Case Study"],
+      "summary": "Slide bài giảng Day 2 về mô hình Double Diamond (Don Norman/British Design Council) để đi từ yêu cầu mơ hồ đến Problem Statement rõ ràng, kèm 3 case study thực tế (Cursor, Artifact, NotebookLM).",
       "key_takeaways": [
-        "5 bước xác định bài toán AI: Pain → Evidence → Impact → Slice → Build — [D2-slide-p5]",
-        "Automation level 3 mức: Augment (AI gợi ý) / Conditional (AI làm case chắc) / Automate (AI tự làm) — [D2-slide-p18]",
-        "Job-to-be-done: what job is the user trying to get done — không phải feature muốn build — [D2-slide-p12]",
-        "AI product lifecycle: Discovery → Spec → Build → Eval → Deploy → Monitor — [D2-slide-p25]"
+        "Mô hình Double Diamond (Don Norman / British Design Council, 2005): Diamond 1 tìm đúng vấn đề (Discover mở rộng → Define hội tụ), Diamond 2 tìm đúng giải pháp (Develop → Deliver) — [D2-slide-p3]",
+        "Kỹ thuật Diamond 1: Discover dùng quan sát/phỏng vấn/khảo sát/nhật ký hành vi; Define dùng affinity mapping, 5 Whys, ma trận tác động-nỗ lực, rồi viết Problem Statement — [D2-slide-p4]",
+        "3 bài học thực tế: Cursor (bỏ AI thiết kế CAD để tập trung vào AI code editor — đúng năng lực cốt lõi), Artifact (sản phẩm tốt nhưng thị trường quá hẹp, đóng cửa 1/2024), NotebookLM (định vị đúng điểm đau — hỏi đáp + trích dẫn nguồn trên tài liệu cá nhân) — [D2-slide-p5]"
       ],
-      "citations": ["[D2-slide-p5]", "[D2-slide-p12]", "[D2-slide-p18]", "[D2-slide-p25]"],
+      "citations": ["[D2-slide-p3]", "[D2-slide-p4]", "[D2-slide-p5]"],
       "source_file": "slides/d2-slide-hackathon.pdf"
     }
   ],
   "metadata": {
     "total_documents": 8,
     "last_updated": "2026-07-31",
-    "version": "2.0",
+    "version": "3.0",
+    "verification_note": "Toàn bộ key_takeaways và citations đã được đối chiếu trực tiếp với nội dung thật trong data/vlearn-pack/ (không dùng data ngoài phạm vi). Phiên bản trước (v2.0) có nhiều citation sai (trỏ vào nội dung không liên quan, kể cả đoạn [Hoạt động lớp:...] hành chính) — đã phát hiện và xây dựng lại toàn bộ.",
     "sources": {
       "transcripts": ["T01", "T02", "T03", "T04", "T05", "T06"],
       "slides": ["D1-SLIDE", "D2-SLIDE"]

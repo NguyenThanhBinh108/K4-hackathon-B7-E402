@@ -3,6 +3,9 @@ uvicorn[standard]
 google-genai
 groq
 pymupdf
+python-docx
+python-pptx
 python-multipart
 python-dotenv
 pydantic
+chromadb

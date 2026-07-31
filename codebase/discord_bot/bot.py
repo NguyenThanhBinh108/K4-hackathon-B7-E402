@@ -55,6 +55,37 @@ async def on_command_error(ctx, error):
         await ctx.reply(f"❌ Lỗi: {str(error)[:200]}", mention_author=False)
 
 
+@bot.event
+async def on_message(message: discord.Message):
+    """
+    Auto-detect file đính kèm khi gửi vào kênh — không cần gõ lệnh `!ka tóm tắt`.
+    - PDF/Word/PowerPoint/Text → tự động tóm tắt (giống lệnh tóm tắt thủ công).
+    - Video/audio → nhận diện được nhưng KHÔNG xử lý nội dung (non-goal đã khai trong spec.md),
+      trả lời từ chối đúng cách kèm hướng dẫn thay vì im lặng hoặc báo lỗi.
+    - Định dạng khác (ảnh, gif, zip...) → im lặng bỏ qua, không spam kênh.
+    - Tin nhắn có prefix "!ka " vẫn xử lý như lệnh bình thường (không đổi hành vi cũ).
+    """
+    if message.author == bot.user:
+        return
+
+    # Tin nhắn dùng lệnh tường minh (vd "!ka tóm tắt") vẫn xử lý qua command bình thường bên
+    # dưới — chỉ auto-detect attachment khi KHÔNG phải lệnh, tránh xử lý trùng 2 lần.
+    if not message.content.startswith(PREFIX + " "):
+        for attachment in message.attachments:
+            name = attachment.filename.lower()
+            if name.endswith(PROCESSABLE_EXTENSIONS):
+                await _summarize_attachment(message, attachment, silent_on_unsupported=True)
+            elif name.endswith(VIDEO_EXTENSIONS):
+                await message.reply(
+                    "💭 Video/audio chưa hỗ trợ tự động tóm tắt — cần transcript dạng text. "
+                    "Xem #tài-nguyên hoặc paste text thủ công, hoặc dùng `!ka tổng hợp`.",
+                    mention_author=False
+                )
+            # Định dạng khác: bỏ qua, không phải trách nhiệm của bot này
+
+    await bot.process_commands(message)
+
+
 # ══ COMMANDS ══════════════════════════════════════════════════════════
 
 @bot.command(name="help", aliases=["h", "hướng dẫn"])
@@ -102,7 +133,7 @@ async def cmd_ask(ctx, *, question: str = ""):
                 async with session.post(
                     f"{API_BASE}/api/chat",
                     json={"message": question, "session_id": str(ctx.author.id)},
-                    timeout=aiohttp.ClientTimeout(total=30)
+                    timeout=aiohttp.ClientTimeout(total=45)
                 ) as resp:
                     data = await resp.json()
         except aiohttp.ClientConnectorError:
@@ -157,43 +188,27 @@ async def cmd_ask(ctx, *, question: str = ""):
     await ctx.reply(embed=embed, mention_author=False)
 
 
-@bot.command(name="tóm tắt", aliases=["tomtat", "summary", "pdf"])
-async def cmd_summarize(ctx):
-    """Tóm tắt file PDF đính kèm"""
-    # Check attachments (current message or replied message)
-    attachments = ctx.message.attachments
+# ── Loại file auto-detect được (khớp services/pdf_service.py bên backend) ──
+PROCESSABLE_EXTENSIONS = (".pdf", ".docx", ".doc", ".pptx", ".ppt", ".txt", ".md")
+VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi", ".mkv", ".webm", ".mp3", ".wav", ".m4a")
 
-    if not attachments and ctx.message.reference:
+
+async def _summarize_attachment(reply_target, attachment, silent_on_unsupported: bool = False):
+    """Tải attachment + gọi /api/summarize + reply embed.
+    Dùng chung cho lệnh `!ka tóm tắt` và auto-detect trong on_message.
+    reply_target: Context hoặc Message — cả hai đều có .reply() và .channel.
+    silent_on_unsupported: True khi gọi từ auto-detect (không phải lệnh tường minh) —
+        bỏ qua lặng lẽ nếu backend báo 400 (định dạng không hỗ trợ), không spam kênh.
+    """
+    async with reply_target.channel.typing():
         try:
-            ref_msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-            attachments = ref_msg.attachments
-        except Exception:
-            pass
-
-    pdf_attachment = None
-    for att in attachments:
-        if att.filename.lower().endswith(".pdf"):
-            pdf_attachment = att
-            break
-
-    if not pdf_attachment:
-        await ctx.reply(
-            "📎 **Cách dùng:** Đính kèm file PDF kèm lệnh `!ka tóm tắt`\n"
-            "hoặc reply vào message có file PDF và gõ `!ka tóm tắt`",
-            mention_author=False
-        )
-        return
-
-    async with ctx.typing():
-        try:
-            # Download PDF bytes
             async with aiohttp.ClientSession() as session:
-                async with session.get(pdf_attachment.url) as r:
-                    pdf_bytes = await r.read()
+                async with session.get(attachment.url) as r:
+                    file_bytes = await r.read()
 
-                # Upload to API
                 form = aiohttp.FormData()
-                form.add_field("file", pdf_bytes, filename=pdf_attachment.filename, content_type="application/pdf")
+                form.add_field("file", file_bytes, filename=attachment.filename,
+                                content_type="application/octet-stream")
 
                 async with session.post(
                     f"{API_BASE}/api/summarize",
@@ -202,14 +217,27 @@ async def cmd_summarize(ctx):
                 ) as resp:
                     data = await resp.json()
 
+                    if resp.status == 422:
+                        # Video/audio hoặc lỗi đọc file — từ chối đúng cách, không phải lỗi hệ thống
+                        await reply_target.reply(f"💭 {data.get('detail', 'Không xử lý được file này.')}",
+                                                  mention_author=False)
+                        return
+                    if resp.status == 400:
+                        # Định dạng không hỗ trợ — auto-detect thì im lặng bỏ qua, lệnh tường minh thì báo rõ
+                        if not silent_on_unsupported:
+                            await reply_target.reply(f"❌ {data.get('detail', 'Định dạng không hỗ trợ.')}",
+                                                      mention_author=False)
+                        return
                     if not resp.ok:
                         raise Exception(data.get("detail", "Lỗi không xác định"))
 
         except aiohttp.ClientConnectorError:
-            await ctx.reply("❌ Không kết nối được backend.", mention_author=False)
+            if not silent_on_unsupported:
+                await reply_target.reply("❌ Không kết nối được backend.", mention_author=False)
             return
         except Exception as e:
-            await ctx.reply(f"❌ {str(e)[:300]}", mention_author=False)
+            if not silent_on_unsupported:
+                await reply_target.reply(f"❌ {str(e)[:300]}", mention_author=False)
             return
 
     s = data.get("summary", {})
@@ -218,7 +246,7 @@ async def cmd_summarize(ctx):
     citations = (s.get("citations") or [])[:4]
 
     embed = discord.Embed(
-        title=f"📄 {s.get('title', pdf_attachment.filename)}",
+        title=f"📄 {s.get('title', attachment.filename)}",
         color=0x5865F2
     )
     embed.add_field(name="Module", value=s.get("module", "—"), inline=True)
@@ -245,7 +273,37 @@ async def cmd_summarize(ctx):
     embed.set_footer(text=f"🤖 Độ tin cậy: {conf}% · Tóm tắt tự động — xem nguyên văn để xác nhận")
     embed.set_author(name="VinAI Knowledge Assistant ⚡")
 
-    await ctx.reply(embed=embed, mention_author=False)
+    await reply_target.reply(embed=embed, mention_author=False)
+
+
+@bot.command(name="tóm tắt", aliases=["tomtat", "summary", "pdf"])
+async def cmd_summarize(ctx):
+    """Tóm tắt file đính kèm (PDF/Word/PowerPoint/Text)"""
+    # Check attachments (current message or replied message)
+    attachments = ctx.message.attachments
+
+    if not attachments and ctx.message.reference:
+        try:
+            ref_msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            attachments = ref_msg.attachments
+        except Exception:
+            pass
+
+    doc_attachment = None
+    for att in attachments:
+        if att.filename.lower().endswith(PROCESSABLE_EXTENSIONS + VIDEO_EXTENSIONS):
+            doc_attachment = att
+            break
+
+    if not doc_attachment:
+        await ctx.reply(
+            "📎 **Cách dùng:** Đính kèm file (PDF/Word/PowerPoint/Text) kèm lệnh `!ka tóm tắt`\n"
+            "hoặc reply vào message có file và gõ `!ka tóm tắt`",
+            mention_author=False
+        )
+        return
+
+    await _summarize_attachment(ctx, doc_attachment, silent_on_unsupported=False)
 
 
 @bot.command(name="tổng hợp", aliases=["tonghop", "synthesize", "synth"])

@@ -152,8 +152,8 @@ python main.py
 | PDF text extraction (PyMuPDF) | **REAL** | — |
 | Router (logistics/ambiguous/RAG) | **REAL** | `eval/run_results_01.md` |
 | Discord bot (thin client) | **REAL** (mở rộng, ngoài lát cắt demo chính) | `codebase/discord_bot/bot.py` |
-| Knowledge base search | **MOCK** (JSON tĩnh + keyword, nội dung có căn cứ thật từ `data/vlearn-pack/`) | `codebase/backend/knowledge_base.json` |
-| Vector search | MOCK | roadmap |
+| Knowledge base search (mặc định demo) | **MOCK** (JSON tĩnh + keyword) — nội dung + citations đã rà soát lại toàn bộ, đọc trực tiếp `data/vlearn-pack/` để verify từng takeaway (bản trước có citation sai, đã phát hiện và xây lại) | `codebase/backend/knowledge_base.json` |
+| Vector search (opt-in, không mặc định) | **REAL nhưng chất lượng tiếng Việt chưa đạt** (913 chunk thật, embedding local, đã test) | `codebase/backend/services/vector_kb.py`, `scripts/ingest_kb.py` |
 
 ---
 

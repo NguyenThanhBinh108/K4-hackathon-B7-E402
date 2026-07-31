@@ -13,9 +13,10 @@
 3. [Cấu hình `.env` — bắt buộc và tuỳ chọn](#3-cấu-hình-env--bắt-buộc-và-tuỳ-chọn)
 4. [Kiểm tra hệ thống chạy đúng](#4-kiểm-tra-hệ-thống-chạy-đúng)
 5. [Chạy Discord bot thật (tuỳ chọn)](#5-chạy-discord-bot-thật-tuỳ-chọn)
-6. [Cấu trúc code](#6-cấu-trúc-code)
-7. [Demo 5 phút (CP6)](#7-demo-5-phút-cp6)
-8. [Troubleshooting — kể cả rate-limit / quota](#8-troubleshooting--kể-cả-rate-limit--quota)
+6. [Vector search thật (tuỳ chọn, có giới hạn)](#6-vector-search-thật-tuỳ-chọn-có-giới-hạn)
+7. [Cấu trúc code](#7-cấu-trúc-code)
+8. [Demo 5 phút (CP6)](#8-demo-5-phút-cp6)
+9. [Troubleshooting — kể cả rate-limit / quota](#9-troubleshooting--kể-cả-rate-limit--quota)
 
 ---
 
@@ -143,16 +144,57 @@ copy .env.example .env
 python bot.py
 ```
 
-Lệnh dùng trong Discord: `!ka hỏi <câu hỏi>` · `!ka tóm tắt` (reply vào tin có PDF đính kèm)
+Lệnh dùng trong Discord: `!ka hỏi <câu hỏi>` · `!ka tóm tắt` (reply vào tin có file đính kèm)
 · `!ka tổng hợp <đoạn chat>` · `!ka kb` · `!ka help`.
 
-> Lưu ý: nếu `spec.md` khai non-goal "không tích hợp Discord bot thật", hãy xác nhận lại
-> phạm vi nộp bài trước khi demo phần này — mục này chỉ mô tả cách chạy, không quyết định
-> việc có đưa vào phạm vi chấm hay không.
+**Auto-detect (mới) — không cần gõ lệnh:** chỉ cần gửi file trực tiếp vào kênh (không kèm
+`!ka`), bot tự nhận diện loại file và xử lý:
+- PDF, Word (`.docx`), PowerPoint (`.pptx`), Text (`.txt`/`.md`) → tự động tóm tắt, reply
+  bằng embed y hệt lệnh `!ka tóm tắt`.
+- Video/audio (`.mp4`, `.mov`, `.mp3`, ...) → bot nhận diện được nhưng **không xử lý nội
+  dung** (đúng non-goal đã khai trong `spec.md` §4) — trả lời hướng dẫn dùng transcript text
+  hoặc `!ka tổng hợp` thay thế.
+- File khác (ảnh, zip...) → bot im lặng bỏ qua, không spam kênh.
+
+> Lưu ý: theo `spec.md` §4, Discord bot là bản mở rộng thật nhưng **không phải lát cắt demo
+> chính** — lát cắt được chấm điểm chạy qua Web UI. Dùng mục này khi muốn thử nghiệm thêm,
+> không bắt buộc cho demo CP6.
 
 ---
 
-## 6. Cấu Trúc Code
+## 6. Vector Search Thật (Tuỳ Chọn, Có Giới Hạn)
+
+`codebase/backend/services/vector_kb.py` + `scripts/ingest_kb.py` bổ sung một backend KB
+thật dùng vector search (Chroma) trên chính `data/vlearn-pack/` — **không dùng data ngoài
+phạm vi hackathon**. Embedding chạy **local** (Chroma default ONNX MiniLM), không gọi
+Gemini/Groq, không tốn quota.
+
+```powershell
+cd d:\VINAI_Team_093\LAB\K4-hackathon-B7-E402\codebase\backend
+.\.venv\Scripts\python.exe scripts\ingest_kb.py
+# → Index ~900 chunk (transcript + slide + chatlog thật có citation) vào chroma_store/
+
+# Bật thử (không sửa .env mặc định trừ khi chắc chắn muốn dùng cho demo):
+$env:KB_BACKEND = "vector"
+python main.py
+```
+
+> ⚠️ **Đã test và xác nhận: chất lượng retrieval tiếng Việt hiện còn yếu.** Embedding mặc
+> định của Chroma (`all-MiniLM-L6-v2`) huấn luyện chủ yếu tiếng Anh — ví dụ hỏi "RAG khác
+> fine-tuning thế nào?" không trả về đúng chunk liên quan dù chunk đó có tồn tại trong index
+> (xác nhận bằng cách tìm trực tiếp). Pipeline chạy ổn định, không crash, có fallback
+> Gemini→Groq hoạt động bình thường qua nhánh này — chỉ riêng bước retrieval là chưa đạt
+> chất lượng production. **`KB_BACKEND` mặc định vẫn là `json`** (keyword search đã test kỹ,
+> qua golden set) — đây là lựa chọn an toàn cho demo. Không đổi mặc định trừ khi đã tự kiểm
+> chứng lại chất lượng với câu hỏi thật của mình.
+>
+> Nâng cấp khả thi sau hackathon: đổi sang embedding đa ngôn ngữ
+> (`sentence-transformers` + model như `paraphrase-multilingual-MiniLM-L12-v2`) — cần cài
+> thêm gói nặng hơn (torch), không làm trong phạm vi thời gian hackathon.
+
+---
+
+## 7. Cấu Trúc Code
 
 ```
 backend/
@@ -178,7 +220,7 @@ discord_bot/                ← Bot Discord thật, thin client gọi backend qu
 
 ---
 
-## 7. Demo 5 Phút (CP6)
+## 8. Demo 5 Phút (CP6)
 
 ```
 [0:00] Mở http://localhost:8000 — Status bar hiện "Gemini ✓ · 8 docs"
@@ -214,7 +256,7 @@ discord_bot/                ← Bot Discord thật, thin client gọi backend qu
 
 ---
 
-## 8. Troubleshooting — Kể Cả Rate-Limit / Quota
+## 9. Troubleshooting — Kể Cả Rate-Limit / Quota
 
 | Lỗi | Fix |
 |---|---|

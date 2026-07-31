@@ -18,6 +18,7 @@ data/vlearn-pack/
 
 codebase/backend/__pycache__/
 codebase/backend/services/__pycache__/
+codebase/backend/chroma_store/
 
 # IDE
 .vscode/settings.json
