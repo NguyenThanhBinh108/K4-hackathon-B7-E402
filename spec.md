@@ -106,6 +106,22 @@
 - **Đáng né:** Hallucinate tự tin — không biết mình không biết, không cite nguồn → học viên tin nhầm
 - **Mình khác gì:** Bắt buộc có citation [TXX-NNN], từ chối thẳng khi không có căn cứ trong KB
 
+### Vì sao không dùng Agent/Multi-agent/MCP (Agentic Fit Scoring)
+
+| Tiêu chí | Điểm (1-5) | Lý do |
+|---|:---:|---|
+| Multi-step reasoning | 2 | Route → retrieve → generate là chuỗi cố định, không lập kế hoạch động |
+| Tool interaction | 3 | Gọi KB search + Gemini/Groq — biết trước tool nào dùng khi nào |
+| Dynamic decision | 2 | Router quyết định 1 lần đầu request, không có vòng lặp action→observe→adapt |
+| Long horizon | 1 | Mỗi request xử lý độc lập; conversational memory chỉ để hỏi liên tiếp tiện hơn |
+| **Tổng: 8/20** | | Vùng **"augmented chatbot"** (6-10) — không đạt ngưỡng cần Agent/MCP thật |
+
+Theo thang Anthropic (Augmented LLM → Prompt Chaining → Routing → Orchestrator-Worker →
+Agent), hệ thống dừng ở **Routing**: router phân loại logistics/ambiguous/RAG một lần đầu,
+mỗi nhánh gọi LLM có tool (KB retrieval) + structured output. Không cần framework agent
+(LangGraph/CrewAI/AutoGen) — thêm vào sẽ tăng token, tăng latency, tăng điểm fail mà không
+giải quyết thêm bài toán nào ở quy mô lát cắt này.
+
 ---
 
 ## §4. Thiết Kế
@@ -117,10 +133,13 @@
 ### Non-goals (≥3 — KHÔNG build)
 
 1. **Không xử lý video/audio** — chỉ text/PDF trong prototype; transcript thủ công nếu cần demo
-2. **Không tích hợp Discord bot thật** — demo qua Web UI; Discord integration là roadmap tuần 1 sau hackathon
+2. **Không quản lý permission/role Discord** — bot Discord (`codebase/discord_bot/`) là thin
+   client gọi thẳng backend, không có logic phân quyền theo role/kênh
 3. **Không RAG vector search** — dùng JSON KB + keyword search + Gemini context; ChromaDB là roadmap
 4. **Không trả lời câu hỏi logistics** (deadline, điểm, lịch học, học phí) — quá rủi ro, sai là hậu quả thật
-5. **Không quản lý permission/role Discord**
+5. **Không đóng vai trò lát cắt demo chính** cho Discord bot — lát cắt chấm điểm chính chạy
+   qua Web UI (`codebase/frontend/`); Discord bot là bản mở rộng thật (gọi cùng backend,
+   cùng AI call thật) dùng để thử nghiệm, không phải phần bắt buộc trong 5 phút demo
 
 ### Mức Prototype
 
@@ -131,9 +150,10 @@
 | Gemini Flash summarization | **Thật** — lệnh gọi API thật, logged |
 | Gemini Flash Q&A | **Thật** — lệnh gọi API thật, logged |
 | PDF text extraction (PyMuPDF) | **Thật** |
-| Knowledge Base | **Mock** — JSON file với 8 docs từ data pack |
+| Knowledge Base | **Mock** — JSON file với 8 docs, nội dung + citations có căn cứ thật từ `data/vlearn-pack/` (spot-check trace được về đúng mã đoạn trong transcript) |
 | Vector search | **Mock** — keyword search đơn giản |
-| Discord integration | **Mock** — Web UI giả lập |
+| Discord bot (`codebase/discord_bot/`) | **Thật** — thin client gọi cùng backend, cùng AI call thật; không phải lát cắt demo chính (xem non-goal §4) |
+| Web UI demo chính | **Thật** — lát cắt được chấm điểm chạy qua đây |
 
 ### Automation: **Conditional**
 
@@ -287,3 +307,5 @@ Xem `eval/run_results_01.md` — cập nhật sau CP3.
 | 30/07/2026 20:00 | Thêm Q&A chat với KB context | Mining chatlog: 46.2% responses không cite → cần grounding |
 | 31/07/2026 02:00 | Thêm router intent (logistics/ambiguous/RAG) | Không có guardrail → AI bịa khi hỏi ngoài phạm vi |
 | 31/07/2026 02:30 | Commit quality bar: ≥75% + 100% citation + 100% scope | Đúng format spec.md theo rubric |
+| 31/07/2026 11:30 | Thêm retry/backoff + fallback Gemini→Groq + cache trong `gemini_service.py` | Free-tier Gemini bị rate-limit (429, quota=0), cần hệ thống tự phục hồi thay vì lỗi 500 |
+| 31/07/2026 12:00 | Sửa non-goal §4: bỏ "không tích hợp Discord bot thật" (không khớp bản build — `discord_bot/` là bot thật), thay bằng mô tả đúng thực tế + thêm lý do Agentic Fit Scoring vào §3 | Rà soát lại spec cho khớp bản build đúng yêu cầu R2; không đổi quality bar |
